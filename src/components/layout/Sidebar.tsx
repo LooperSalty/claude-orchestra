@@ -37,7 +37,7 @@ export function Sidebar() {
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
       {/* ── Logo ── */}
-      <div className="flex items-center gap-3 px-4 h-14 shrink-0">
+      <div className="flex items-center gap-3 px-5 h-16 shrink-0 border-b" style={{ borderColor: 'var(--border-0)' }}>
         <div
           className="w-8 h-8 rounded-xl flex items-center justify-center font-display font-black text-xs shrink-0"
           style={{
@@ -65,7 +65,7 @@ export function Sidebar() {
       </div>
 
       {/* ── Navigation ── */}
-      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
@@ -75,7 +75,7 @@ export function Sidebar() {
             <button
               key={item.id}
               onClick={() => setPage(item.id)}
-              className="flex items-center gap-3 w-full rounded-xl px-3 py-2.5 transition-all group relative"
+              className="flex items-center gap-3 w-full rounded-xl px-3 py-3 transition-all group relative"
               style={{
                 background: isActive ? 'var(--bg-4)' : 'transparent',
                 color: isActive ? 'var(--text-0)' : 'var(--text-3)',

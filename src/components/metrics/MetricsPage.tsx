@@ -53,7 +53,7 @@ function StatCard({ index, icon: Icon, label, value, sub, accent }: {
 }) {
   return (
     <motion.div custom={index} variants={cardVariants} initial="initial" animate="animate"
-      className="rounded-xl border p-4" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+      className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center"
           style={{ background: `${accent}20`, color: accent }}><Icon size={16} /></div>
@@ -70,7 +70,7 @@ export function MetricsPage() {
   const totalCost = TOKEN_DATA.reduce((s, d) => s + d.cost, 0);
 
   return (
-    <div className="space-y-5 max-w-6xl">
+    <div className="space-y-8 max-w-6xl">
       <div>
         <h1 className="text-h1" style={{ color: 'var(--text-primary)' }}>Métriques</h1>
         <p className="text-body mt-1" style={{ color: 'var(--text-secondary)' }}>
@@ -79,7 +79,7 @@ export function MetricsPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard index={0} icon={Activity} label="Tokens cette semaine" value={totalTokens.toLocaleString()} accent="var(--accent-primary)" sub="+12% vs semaine dernière" />
         <StatCard index={1} icon={Coins} label="Coût cette semaine" value={`$${(totalCost / 100).toFixed(2)}`} accent="var(--accent-warning)" sub="Budget: $5.00" />
         <StatCard index={2} icon={Zap} label="Latence moyenne" value="230ms" accent="var(--accent-cyan)" sub="P95: 890ms" />
@@ -90,7 +90,7 @@ export function MetricsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Token usage area chart */}
         <motion.div custom={4} variants={cardVariants} initial="initial" animate="animate"
-          className="rounded-xl border p-4" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+          className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
           <h3 className="text-h3 mb-4" style={{ color: 'var(--text-primary)' }}>Tokens par jour</h3>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={TOKEN_DATA}>
@@ -112,7 +112,7 @@ export function MetricsPage() {
 
         {/* Cost bar chart */}
         <motion.div custom={5} variants={cardVariants} initial="initial" animate="animate"
-          className="rounded-xl border p-4" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+          className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
           <h3 className="text-h3 mb-4" style={{ color: 'var(--text-primary)' }}>Coût par jour (cents)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={TOKEN_DATA}>
@@ -131,7 +131,7 @@ export function MetricsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Model distribution */}
         <motion.div custom={6} variants={cardVariants} initial="initial" animate="animate"
-          className="rounded-xl border p-4" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+          className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
           <h3 className="text-h3 mb-4" style={{ color: 'var(--text-primary)' }}>Par modèle</h3>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
@@ -154,7 +154,7 @@ export function MetricsPage() {
 
         {/* Latency distribution */}
         <motion.div custom={7} variants={cardVariants} initial="initial" animate="animate"
-          className="rounded-xl border p-4" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+          className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
           <h3 className="text-h3 mb-4" style={{ color: 'var(--text-primary)' }}>Distribution latence</h3>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={LATENCY_DATA}>
@@ -169,7 +169,7 @@ export function MetricsPage() {
 
         {/* Activity heatmap */}
         <motion.div custom={8} variants={cardVariants} initial="initial" animate="animate"
-          className="rounded-xl border p-4" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+          className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
           <h3 className="text-h3 mb-4" style={{ color: 'var(--text-primary)' }}>Activité</h3>
           <div className="flex gap-0.5">
             {Array.from({ length: 12 }, (_, w) => (

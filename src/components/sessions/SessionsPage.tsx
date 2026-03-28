@@ -18,7 +18,7 @@ export function SessionsPage() {
   const terminalSession = sessions.find((s) => s.id === terminalSessionId);
 
   return (
-    <div className="flex flex-col h-full gap-4">
+    <div className="flex flex-col h-full gap-5">
       {/* Header */}
       <div className="flex items-center justify-between shrink-0">
         <div>
@@ -68,7 +68,7 @@ export function SessionsPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 flex gap-4">
+      <div className="flex-1 min-h-0 flex gap-5">
         {/* Session grid */}
         <div className={`${terminalSession ? 'w-80 shrink-0' : 'flex-1'} overflow-y-auto`}>
           {sessions.length === 0 ? (
@@ -100,7 +100,7 @@ export function SessionsPage() {
               </button>
             </motion.div>
           ) : (
-            <div className={`grid gap-3 ${terminalSession ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}>
+            <div className={`grid gap-5 ${terminalSession ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'}`}>
               {sessions.map((session, i) => (
                 <SessionCard
                   key={session.id}

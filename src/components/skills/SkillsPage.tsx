@@ -55,7 +55,7 @@ export function SkillsPage() {
   const enabledCount = skills.filter((s) => s.isEnabled).length;
 
   return (
-    <div className="space-y-5 max-w-6xl">
+    <div className="space-y-8 max-w-6xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -94,10 +94,10 @@ export function SkillsPage() {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
         {filtered.map((skill, i) => (
           <motion.div key={skill.id} custom={i} variants={cardVariants} initial="initial" animate="animate"
-            className="rounded-xl border p-4 cursor-pointer group transition-all duration-200"
+            className="rounded-xl border p-5 cursor-pointer group transition-all duration-200"
             style={{
               background: 'var(--bg-surface)',
               borderColor: skill.isEnabled ? 'var(--border-default)' : 'var(--border-subtle)',

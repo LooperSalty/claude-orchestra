@@ -24,7 +24,7 @@ interface StatProps {
 
 function Stat({ icon: Icon, label, value, sub, accent, glowClass }: StatProps) {
   return (
-    <motion.div variants={fadeUp} className={`card card-glow-cyan p-5 ${glowClass ?? ''}`}>
+    <motion.div variants={fadeUp} className={`card card-glow-cyan p-6 ${glowClass ?? ''}`}>
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
           <div
@@ -35,7 +35,7 @@ function Stat({ icon: Icon, label, value, sub, accent, glowClass }: StatProps) {
           </div>
           <ArrowUpRight size={14} style={{ color: 'var(--text-4)' }} />
         </div>
-        <div className="font-display text-2xl font-bold tracking-tight" style={{ color: 'var(--text-0)' }}>
+        <div className="font-display text-3xl font-bold tracking-tight" style={{ color: 'var(--text-0)' }}>
           {value}
         </div>
         <div className="text-[11px] mt-1 font-medium" style={{ color: 'var(--text-3)' }}>
@@ -62,7 +62,7 @@ export function DashboardPage() {
       variants={stagger}
       initial="initial"
       animate="animate"
-      className="space-y-5 max-w-[1200px]"
+      className="space-y-8 max-w-[1100px]"
     >
       {/* ── Header ── */}
       <motion.div variants={fadeUp}>
@@ -75,7 +75,7 @@ export function DashboardPage() {
       </motion.div>
 
       {/* ── KPI Grid ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <Stat
           icon={Terminal}
           label="Active sessions"
@@ -115,7 +115,7 @@ export function DashboardPage() {
         >
           {/* Gradient mesh background */}
           <div
-            className="relative px-10 py-14"
+            className="relative px-12 py-20"
             style={{
               background: `
                 radial-gradient(ellipse at 20% 50%, rgba(0, 212, 255, 0.06) 0%, transparent 60%),
@@ -138,7 +138,7 @@ export function DashboardPage() {
               <h2 className="font-display text-xl font-bold tracking-tight mb-2" style={{ color: 'var(--text-0)' }}>
                 Welcome to Orchestra
               </h2>
-              <p className="text-[13px] leading-relaxed mb-6" style={{ color: 'var(--text-3)' }}>
+              <p className="text-[14px] leading-relaxed mb-8" style={{ color: 'var(--text-3)' }}>
                 Manage multiple Claude Code instances, agents, skills, and configuration from one dashboard.
               </p>
 
@@ -159,7 +159,7 @@ export function DashboardPage() {
                 </button>
               </div>
 
-              <div className="flex justify-center gap-6 mt-8 text-[11px] font-mono" style={{ color: 'var(--text-4)' }}>
+              <div className="flex justify-center gap-8 mt-10 text-[11px] font-mono" style={{ color: 'var(--text-4)' }}>
                 <span>⌘K command palette</span>
                 <span>⌘N new session</span>
                 <span>⌘, settings</span>

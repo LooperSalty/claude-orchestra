@@ -48,7 +48,7 @@ export function AppShell() {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="relative z-10 h-full p-5"
+              className="relative z-10 h-full p-8"
             >
               <PageComponent />
             </motion.div>

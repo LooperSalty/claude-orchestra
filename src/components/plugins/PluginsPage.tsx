@@ -61,7 +61,7 @@ export function PluginsPage() {
   const connected = plugins.filter((p) => p.status === 'connected').length;
 
   return (
-    <div className="space-y-5 max-w-6xl">
+    <div className="space-y-8 max-w-6xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-h1" style={{ color: 'var(--text-primary)' }}>Plugins & MCP</h1>
@@ -95,13 +95,13 @@ export function PluginsPage() {
       </div>
 
       {/* Plugin grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {plugins.map((plugin, i) => {
           const cfg = STATUS_CONFIG[plugin.status];
           const StatusIcon = cfg.icon;
           return (
             <motion.div key={plugin.id} custom={i} variants={cardVariants} initial="initial" animate="animate"
-              className={`rounded-xl border p-4 transition-all duration-200 ${
+              className={`rounded-xl border p-5 transition-all duration-200 ${
                 plugin.status === 'connected' ? 'glow-green' : plugin.status === 'error' ? 'glow-red' : ''
               }`}
               style={{

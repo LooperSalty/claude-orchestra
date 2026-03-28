@@ -51,7 +51,7 @@ export function AgentsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl">
+    <div className="space-y-8 max-w-6xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-h1" style={{ color: 'var(--text-primary)' }}>Agents</h1>
@@ -66,12 +66,12 @@ export function AgentsPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {agents.map((agent, i) => (
           <motion.div key={agent.id} custom={i} variants={cardVariants}
             initial="initial" animate="animate"
             onClick={() => handleEdit(agent)}
-            className="rounded-xl border p-4 cursor-pointer transition-all duration-200 group"
+            className="rounded-xl border p-5 cursor-pointer transition-all duration-200 group"
             style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
             <div className="flex items-center gap-3 mb-3">
               <div className="w-11 h-11 rounded-xl flex items-center justify-center text-lg"

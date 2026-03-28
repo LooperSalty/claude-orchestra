@@ -22,7 +22,7 @@ export function ConfigPage() {
   const config = useConfigStore((s) => s.config);
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-8 max-w-4xl">
       <div>
         <h1 className="text-h1" style={{ color: 'var(--text-primary)' }}>
           Configuration
@@ -32,7 +32,7 @@ export function ConfigPage() {
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-5">
         {SECTIONS.map((section, i) => {
           const Icon = section.icon;
           return (
@@ -42,7 +42,7 @@ export function ConfigPage() {
               variants={cardVariants}
               initial="initial"
               animate="animate"
-              className="rounded-xl border p-4 cursor-pointer transition-colors"
+              className="rounded-xl border p-5 cursor-pointer transition-colors"
               style={{
                 background: 'var(--bg-surface)',
                 borderColor: 'var(--border-subtle)',
@@ -72,7 +72,7 @@ export function ConfigPage() {
 
       {/* Current theme indicator */}
       <div
-        className="rounded-xl border p-4"
+        className="rounded-xl border p-5"
         style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
       >
         <div className="flex items-center gap-3">
