@@ -29,9 +29,7 @@
   },
   "plugins": {
     "sql": {
-      "preload": {
-        "db": "sqlite:orchestra.db"
-      }
+      "preload": ["sqlite:orchestra.db"]
     }
   }
 }

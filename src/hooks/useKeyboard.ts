@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useUIStore } from '@/stores/uiStore';
 
 export function useKeyboard() {
-  const { toggleCommandPalette, setPage } = useUIStore();
+  const { toggleCommandPalette, setPage, setSplitLayout } = useUIStore();
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -12,7 +12,7 @@ export function useKeyboard() {
         toggleCommandPalette();
       }
 
-      // Ctrl+N — New Session
+      // Ctrl+N — New Session (navigate to sessions)
       if (e.ctrlKey && e.key === 'n') {
         e.preventDefault();
         setPage('sessions');
@@ -22,6 +22,18 @@ export function useKeyboard() {
       if (e.ctrlKey && e.key === ',') {
         e.preventDefault();
         setPage('config');
+      }
+
+      // Ctrl+Shift+H — Split horizontal
+      if (e.ctrlKey && e.shiftKey && e.key === 'H') {
+        e.preventDefault();
+        setSplitLayout('horizontal');
+      }
+
+      // Ctrl+Shift+V — Split vertical
+      if (e.ctrlKey && e.shiftKey && e.key === 'V') {
+        e.preventDefault();
+        setSplitLayout('vertical');
       }
 
       // Ctrl+Shift+S — Skills
@@ -58,5 +70,5 @@ export function useKeyboard() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleCommandPalette, setPage]);
+  }, [toggleCommandPalette, setPage, setSplitLayout]);
 }
