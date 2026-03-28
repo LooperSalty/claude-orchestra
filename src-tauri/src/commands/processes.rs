@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use portable_pty::{CommandBuilder, PtySize, native_pty_system, PtySystem};
+use portable_pty::{CommandBuilder, PtySize, native_pty_system, PtySystem, Child as PtyChild};
 use std::io::{Read, Write};
 use tauri::ipc::Channel;
 
@@ -19,20 +19,14 @@ pub struct SessionOutput {
     pub log_type: String,
 }
 
-/// Global state for managing running processes
 pub struct ProcessState {
-    pub handles: Mutex<HashMap<String, PtyHandle>>,
-}
-
-pub struct PtyHandle {
-    pub writer: Box<dyn Write + Send>,
-    pub alive: Arc<std::sync::atomic::AtomicBool>,
+    pub writers: Mutex<HashMap<String, Box<dyn Write + Send>>>,
 }
 
 impl ProcessState {
     pub fn new() -> Self {
         Self {
-            handles: Mutex::new(HashMap::new()),
+            writers: Mutex::new(HashMap::new()),
         }
     }
 }
@@ -46,6 +40,8 @@ pub async fn spawn_process(
     model: Option<String>,
     extra_args: Vec<String>,
 ) -> Result<ProcessInfo, String> {
+    eprintln!("[ORCHESTRA] spawn_process: session={}, path={}", session_id, project_path);
+
     let pty_system = native_pty_system();
 
     let pair = pty_system
@@ -57,7 +53,7 @@ pub async fn spawn_process(
         })
         .map_err(|e| format!("Failed to open PTY: {}", e))?;
 
-    // Build the claude command string
+    // Build claude command
     let mut claude_args = String::from("claude");
     if let Some(ref m) = model {
         claude_args.push_str(&format!(" --model {}", m));
@@ -66,69 +62,80 @@ pub async fn spawn_process(
         claude_args.push_str(&format!(" {}", arg));
     }
 
-    // Spawn an interactive shell
     let mut cmd = CommandBuilder::new("cmd.exe");
     cmd.cwd(&project_path);
-
-    // Inherit environment for PATH resolution
     for (key, value) in std::env::vars() {
         cmd.env(key, value);
     }
     cmd.env("FORCE_COLOR", "1");
     cmd.env("TERM", "xterm-256color");
 
-    let _child = pair
+    let mut child: Box<dyn PtyChild + Send + Sync> = pair
         .slave
         .spawn_command(cmd)
-        .map_err(|e| format!("Failed to spawn shell: {}", e))?;
+        .map_err(|e| format!("Failed to spawn: {}", e))?;
 
-    drop(pair.slave);
+    eprintln!("[ORCHESTRA] Shell spawned OK");
 
-    let mut writer = pair
-        .master
-        .take_writer()
-        .map_err(|e| format!("Failed to get PTY writer: {}", e))?;
-
+    // Get reader and writer from master BEFORE dropping anything
     let mut reader = pair
         .master
         .try_clone_reader()
-        .map_err(|e| format!("Failed to get PTY reader: {}", e))?;
+        .map_err(|e| format!("Failed to get reader: {}", e))?;
 
-    // Send diagnostic via channel immediately
+    let writer = pair
+        .master
+        .take_writer()
+        .map_err(|e| format!("Failed to get writer: {}", e))?;
+
+    eprintln!("[ORCHESTRA] Got reader and writer");
+
+    // Send diagnostic
     let _ = on_output.send(SessionOutput {
         content: format!(
-            "\x1b[90m[Orchestra] Launching: {} in {}\x1b[0m\r\n\r\n",
+            "\x1b[90m[Orchestra] Launching: {} in {}\x1b[0m\r\n",
             claude_args, project_path
         ),
         log_type: "stdout".to_string(),
     });
 
-    // Send the claude command to the shell
-    let claude_cmd = format!("{}\r\n", claude_args);
-    writer
-        .write_all(claude_cmd.as_bytes())
-        .map_err(|e| format!("Write cmd failed: {}", e))?;
-    writer.flush().map_err(|e| format!("Flush failed: {}", e))?;
-
-    let alive = Arc::new(std::sync::atomic::AtomicBool::new(true));
-    let alive_clone = alive.clone();
-
-    // Store handle
+    // Store writer
+    let sid = session_id.clone();
     {
-        let mut handles = state.handles.lock().await;
-        handles.insert(session_id.clone(), PtyHandle {
-            writer,
-            alive: alive.clone(),
-        });
+        let mut writers = state.writers.lock().await;
+        writers.insert(sid.clone(), writer);
     }
 
-    // Spawn reader thread — streams PTY output via Channel
+    // Send claude command
+    {
+        let mut writers = state.writers.lock().await;
+        if let Some(w) = writers.get_mut(&sid) {
+            let cmd_str = format!("{}\r\n", claude_args);
+            let _ = w.write_all(cmd_str.as_bytes());
+            let _ = w.flush();
+            eprintln!("[ORCHESTRA] Sent command: {}", claude_args);
+        }
+    }
+
+    // Spawn reader thread — keep slave alive by moving it into the thread
+    let slave = pair.slave;
+    let sid_reader = session_id.clone();
     std::thread::spawn(move || {
-        let mut buf = [0u8; 8192];
+        // Keep slave alive so the PTY doesn't close
+        let _slave = slave;
+        let mut _child = child;
+
+        eprintln!("[ORCHESTRA] Reader thread started for {}", sid_reader);
+        let mut buf = [0u8; 4096];
+
         loop {
             match reader.read(&mut buf) {
-                Ok(0) => break,
+                Ok(0) => {
+                    eprintln!("[ORCHESTRA] Reader EOF for {}", sid_reader);
+                    break;
+                }
                 Ok(n) => {
+                    eprintln!("[ORCHESTRA] Read {} bytes", n);
                     let content = String::from_utf8_lossy(&buf[..n]).to_string();
                     let _ = on_output.send(SessionOutput {
                         content,
@@ -136,20 +143,21 @@ pub async fn spawn_process(
                     });
                 }
                 Err(e) => {
+                    eprintln!("[ORCHESTRA] Read error: {}", e);
                     let _ = on_output.send(SessionOutput {
-                        content: format!(
-                            "\r\n\x1b[31m[Orchestra] PTY error: {}\x1b[0m\r\n",
-                            e
-                        ),
+                        content: format!("\r\n\x1b[31m[Error] {}\x1b[0m\r\n", e),
                         log_type: "stderr".to_string(),
                     });
                     break;
                 }
             }
         }
-        alive_clone.store(false, std::sync::atomic::Ordering::Relaxed);
+
+        // Wait for child to finish
+        let _ = _child.wait();
+
         let _ = on_output.send(SessionOutput {
-            content: "\r\n\x1b[90m[Orchestra] Process exited.\x1b[0m\r\n".to_string(),
+            content: "\r\n\x1b[90m[Orchestra] Session ended.\x1b[0m\r\n".to_string(),
             log_type: "stdout".to_string(),
         });
     });
@@ -166,14 +174,9 @@ pub async fn kill_process(
     state: tauri::State<'_, Arc<ProcessState>>,
     session_id: String,
 ) -> Result<(), String> {
-    let mut handles = state.handles.lock().await;
-    if let Some(handle) = handles.remove(&session_id) {
-        handle.alive.store(false, std::sync::atomic::Ordering::Relaxed);
-        drop(handle);
-        Ok(())
-    } else {
-        Err("Session process not found".to_string())
-    }
+    let mut writers = state.writers.lock().await;
+    writers.remove(&session_id);
+    Ok(())
 }
 
 #[tauri::command]
@@ -182,18 +185,14 @@ pub async fn send_input(
     session_id: String,
     message: String,
 ) -> Result<(), String> {
-    let mut handles = state.handles.lock().await;
-    if let Some(handle) = handles.get_mut(&session_id) {
-        handle
-            .writer
-            .write_all(message.as_bytes())
+    let mut writers = state.writers.lock().await;
+    if let Some(w) = writers.get_mut(&session_id) {
+        w.write_all(message.as_bytes())
             .map_err(|e| format!("Write failed: {}", e))?;
-        handle
-            .writer
-            .flush()
+        w.flush()
             .map_err(|e| format!("Flush failed: {}", e))?;
         Ok(())
     } else {
-        Err("Session process not found".to_string())
+        Err("Session not found".to_string())
     }
 }

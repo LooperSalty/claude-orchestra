@@ -33,14 +33,17 @@ export function useSession() {
       const { invoke, Channel } = await import('@tauri-apps/api/core');
 
       // Create a channel for streaming PTY output
+      console.log('[ORCHESTRA-FE] Creating channel for session', sessionId);
+
       const onOutput = new Channel<SessionOutput>();
       onOutput.onmessage = (output: SessionOutput) => {
-        // Dispatch to the terminal via CustomEvent
+        console.log('[ORCHESTRA-FE] Channel received:', output.log_type, output.content.slice(0, 80));
         window.dispatchEvent(new CustomEvent(`session-output-${sessionId}`, {
           detail: output,
         }));
       };
 
+      console.log('[ORCHESTRA-FE] Invoking spawn_process...');
       const result = await invoke<{ pid: number; session_id: string }>('spawn_process', {
         onOutput,
         sessionId,
@@ -48,12 +51,16 @@ export function useSession() {
         model,
         extraArgs,
       });
+      console.log('[ORCHESTRA-FE] spawn_process returned:', result);
       updateSession(sessionId, { pid: result.pid });
     } catch (err) {
-      console.error('Spawn error:', err);
+      console.error('[ORCHESTRA-FE] Spawn error:', err);
+      // Show error in terminal
+      window.dispatchEvent(new CustomEvent(`session-output-${sessionId}`, {
+        detail: { content: `\x1b[31m[Orchestra] Error: ${String(err)}\x1b[0m\r\n`, log_type: 'stderr' },
+      }));
       // Browser mode — simulate with demo output
       updateSession(sessionId, { pid: 99999 });
-      simulateOutput(sessionId);
     }
 
     return sessionId;
@@ -84,29 +91,6 @@ export function useSession() {
       timestamp: new Date().toISOString(),
     });
   }, [appendLog]);
-
-  // Simulate output for browser dev mode
-  function simulateOutput(sessionId: string) {
-    const lines = [
-      '\x1b[90m[Orchestra] Browser mode — simulated session\x1b[0m\r\n',
-      '\r\n',
-      '\x1b[1;36m●\x1b[0m Claude Code starting...\r\n',
-      '\x1b[90m  Model: claude-sonnet-4-6\x1b[0m\r\n',
-      '\x1b[90m  Context: 1M tokens\x1b[0m\r\n',
-      '\r\n',
-      '\x1b[32m✓\x1b[0m Session ready. Waiting for input...\r\n',
-      '\r\n',
-      '\x1b[1;37m>\x1b[0m ',
-    ];
-
-    lines.forEach((line, i) => {
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent(`session-output-${sessionId}`, {
-          detail: { content: line, log_type: 'stdout' },
-        }));
-      }, i * 200);
-    });
-  }
 
   return { createSession, stopSession, sendToSession };
 }
