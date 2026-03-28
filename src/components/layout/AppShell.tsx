@@ -24,37 +24,31 @@ const PAGE_COMPONENTS = {
   config: ConfigPage,
 } as const;
 
-const pageVariants = {
-  initial: { opacity: 0, y: 12, filter: 'blur(6px)' },
-  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] as const } },
-  exit: { opacity: 0, y: -8, filter: 'blur(4px)', transition: { duration: 0.15 } },
+const pageTransition = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] as const } },
+  exit: { opacity: 0, y: -4, transition: { duration: 0.12 } },
 };
 
 export function AppShell() {
-  const { currentPage, commandPaletteOpen, sidebarCollapsed } = useUIStore();
+  const { currentPage, commandPaletteOpen } = useUIStore();
   const PageComponent = PAGE_COMPONENTS[currentPage];
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden" style={{ background: 'var(--bg-void)' }}>
+    <div className="flex h-screen w-screen overflow-hidden" style={{ background: 'var(--bg-0)' }}>
       <Sidebar />
       <div className="flex flex-1 flex-col min-w-0">
         <TopBar />
-        <main
-          className="flex-1 overflow-auto relative"
-          style={{
-            background: 'var(--bg-deep)',
-            marginLeft: sidebarCollapsed ? 0 : undefined,
-          }}
-        >
-          <div className="dot-grid absolute inset-0 pointer-events-none opacity-30" />
+        <main className="flex-1 overflow-auto relative" style={{ background: 'var(--bg-1)' }}>
+          <div className="dot-pattern absolute inset-0 pointer-events-none" />
           <AnimatePresence mode="wait">
             <motion.div
               key={currentPage}
-              variants={pageVariants}
+              variants={pageTransition}
               initial="initial"
               animate="animate"
               exit="exit"
-              className="relative z-10 h-full p-6"
+              className="relative z-10 h-full p-5"
             >
               <PageComponent />
             </motion.div>

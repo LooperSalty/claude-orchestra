@@ -1,56 +1,36 @@
 import { useSessionStore } from '@/stores/sessionStore';
 import { useMetricsStore } from '@/stores/metricsStore';
-import { Activity, Coins, Zap, Clock } from 'lucide-react';
-import { APP_VERSION } from '@/lib/constants';
 
 export function StatusBar() {
   const activeSessions = useSessionStore((s) =>
     s.sessions.filter((sess) => sess.status === 'running').length
   );
   const stats = useMetricsStore((s) => s.stats);
-
   const now = new Date();
   const time = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
   return (
     <footer
-      className="flex items-center justify-between h-7 px-4 text-xs border-t shrink-0"
+      className="flex items-center justify-between h-6 px-4 text-[10px] font-mono border-t shrink-0"
       style={{
-        background: 'var(--bg-surface)',
-        borderColor: 'var(--border-subtle)',
-        color: 'var(--text-tertiary)',
+        background: 'var(--bg-1)',
+        borderColor: 'var(--border-0)',
+        color: 'var(--text-4)',
       }}
     >
       <div className="flex items-center gap-4">
         <span className="flex items-center gap-1.5">
           <span
-            className="w-2 h-2 rounded-full"
-            style={{
-              background: activeSessions > 0 ? 'var(--accent-success)' : 'var(--text-ghost)',
-            }}
+            className={`w-[5px] h-[5px] rounded-full ${activeSessions > 0 ? 'status-live' : 'status-idle'}`}
           />
           {activeSessions} active
         </span>
-        <span className="flex items-center gap-1">
-          <Activity size={11} />
-          {stats.totalTokensToday.toLocaleString()} tokens
-        </span>
-        <span className="flex items-center gap-1">
-          <Coins size={11} />
-          ${(stats.totalCostToday / 100).toFixed(2)}
-        </span>
-        <span className="flex items-center gap-1">
-          <Zap size={11} />
-          {stats.avgLatency}ms
-        </span>
+        <span>{stats.totalTokensToday.toLocaleString()} tok</span>
+        <span>${(stats.totalCostToday / 100).toFixed(2)}</span>
       </div>
-
-      <div className="flex items-center gap-4">
-        <span className="flex items-center gap-1">
-          <Clock size={11} />
-          {time}
-        </span>
-        <span style={{ color: 'var(--text-ghost)' }}>v{APP_VERSION}</span>
+      <div className="flex items-center gap-3">
+        <span>{time}</span>
+        <span style={{ color: 'var(--text-4)' }}>v0.1.0</span>
       </div>
     </footer>
   );
