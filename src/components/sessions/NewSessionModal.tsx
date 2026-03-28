@@ -79,11 +79,14 @@ export function NewSessionModal({ open, onClose }: NewSessionModalProps) {
             onClick={onClose}
           />
           <motion.div
-            className="fixed top-1/2 left-1/2 z-50 w-full max-w-lg rounded-xl border overflow-hidden"
+            className="fixed inset-0 z-50 flex items-center justify-center p-8 pointer-events-none"
+          >
+          <motion.div
+            className="w-full max-w-lg rounded-2xl border overflow-hidden pointer-events-auto"
             style={{
-              background: 'var(--bg-elevated)',
-              borderColor: 'var(--border-default)',
-              transform: 'translate(-50%, -50%)',
+              background: 'var(--bg-3)',
+              borderColor: 'var(--border-1)',
+              boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
             }}
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -234,6 +237,7 @@ export function NewSessionModal({ open, onClose }: NewSessionModalProps) {
                 {isLaunching ? 'Lancement...' : 'Lancer la session'}
               </button>
             </div>
+          </motion.div>
           </motion.div>
         </>
       )}
