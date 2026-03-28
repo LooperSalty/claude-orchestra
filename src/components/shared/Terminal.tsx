@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
-import { listen } from '@tauri-apps/api/event';
 import '@xterm/xterm/css/xterm.css';
 
 interface TerminalProps {
@@ -62,8 +61,6 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
     term.writeln('  \x1b[1;36m⬢\x1b[0m \x1b[1mClaude Orchestra\x1b[0m \x1b[90m— Terminal\x1b[0m');
     term.writeln('  \x1b[90m─────────────────────────────\x1b[0m');
     term.writeln('');
-    term.writeln('  \x1b[90mConnecting...\x1b[0m');
-    term.writeln('');
 
     if (onData) {
       term.onData(onData);
@@ -71,25 +68,9 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
 
     termRef.current = term;
 
-    // Listen to Tauri events — use static import (no dynamic import delay)
-    let unlisten: (() => void) | undefined;
+    // Listen to session output via CustomEvent (bridged from Tauri Channel in useSession)
     const eventName = `session-output-${sessionId}`;
-
-    listen<{ content: string; log_type: string }>(eventName, (event) => {
-      const { content, log_type } = event.payload;
-      if (log_type === 'stderr') {
-        term.write(`\x1b[31m${content}\x1b[0m`);
-      } else {
-        term.write(content);
-      }
-    })
-      .then((fn) => { unlisten = fn; })
-      .catch(() => {
-        // Not in Tauri — ignore
-      });
-
-    // Browser fallback: listen to CustomEvent
-    function handleBrowserEvent(e: Event) {
+    function handleOutput(e: Event) {
       const detail = (e as CustomEvent).detail;
       if (detail?.content) {
         if (detail.log_type === 'stderr') {
@@ -99,7 +80,7 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
         }
       }
     }
-    window.addEventListener(eventName, handleBrowserEvent);
+    window.addEventListener(eventName, handleOutput);
 
     // Resize
     const observer = new ResizeObserver(() => {
@@ -109,8 +90,7 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
 
     return () => {
       observer.disconnect();
-      window.removeEventListener(eventName, handleBrowserEvent);
-      unlisten?.();
+      window.removeEventListener(eventName, handleOutput);
       term.dispose();
     };
   }, [sessionId, onData]);

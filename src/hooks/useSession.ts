@@ -2,6 +2,11 @@ import { useCallback } from 'react';
 import { useSessionStore } from '@/stores/sessionStore';
 import type { Session } from '@/types/session';
 
+interface SessionOutput {
+  content: string;
+  log_type: string;
+}
+
 export function useSession() {
   const { addSession, updateSession, appendLog } = useSessionStore();
 
@@ -23,10 +28,21 @@ export function useSession() {
 
     addSession(session);
 
-    // Try to spawn via Tauri
+    // Try to spawn via Tauri with Channel API
     try {
-      const { invoke } = await import('@tauri-apps/api/core');
+      const { invoke, Channel } = await import('@tauri-apps/api/core');
+
+      // Create a channel for streaming PTY output
+      const onOutput = new Channel<SessionOutput>();
+      onOutput.onmessage = (output: SessionOutput) => {
+        // Dispatch to the terminal via CustomEvent
+        window.dispatchEvent(new CustomEvent(`session-output-${sessionId}`, {
+          detail: output,
+        }));
+      };
+
       const result = await invoke<{ pid: number; session_id: string }>('spawn_process', {
+        onOutput,
         sessionId,
         projectPath,
         model,
@@ -34,8 +50,8 @@ export function useSession() {
       });
       updateSession(sessionId, { pid: result.pid });
     } catch (err) {
+      console.error('Spawn error:', err);
       // Browser mode — simulate with demo output
-      console.log('Browser mode: simulating session', sessionId);
       updateSession(sessionId, { pid: 99999 });
       simulateOutput(sessionId);
     }
@@ -72,6 +88,8 @@ export function useSession() {
   // Simulate output for browser dev mode
   function simulateOutput(sessionId: string) {
     const lines = [
+      '\x1b[90m[Orchestra] Browser mode — simulated session\x1b[0m\r\n',
+      '\r\n',
       '\x1b[1;36m●\x1b[0m Claude Code starting...\r\n',
       '\x1b[90m  Model: claude-sonnet-4-6\x1b[0m\r\n',
       '\x1b[90m  Context: 1M tokens\x1b[0m\r\n',
@@ -83,7 +101,6 @@ export function useSession() {
 
     lines.forEach((line, i) => {
       setTimeout(() => {
-        // Emit fake event for Terminal component
         window.dispatchEvent(new CustomEvent(`session-output-${sessionId}`, {
           detail: { content: line, log_type: 'stdout' },
         }));
