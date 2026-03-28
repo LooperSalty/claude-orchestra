@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
+import { listen } from '@tauri-apps/api/event';
 import '@xterm/xterm/css/xterm.css';
 
 interface TerminalProps {
@@ -54,13 +55,14 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
     term.loadAddon(webLinksAddon);
     term.open(containerRef.current);
 
-    // Delay fit to ensure container is sized
     requestAnimationFrame(() => fitAddon.fit());
 
     // Welcome
     term.writeln('');
     term.writeln('  \x1b[1;36m⬢\x1b[0m \x1b[1mClaude Orchestra\x1b[0m \x1b[90m— Terminal\x1b[0m');
     term.writeln('  \x1b[90m─────────────────────────────\x1b[0m');
+    term.writeln('');
+    term.writeln('  \x1b[90mConnecting...\x1b[0m');
     term.writeln('');
 
     if (onData) {
@@ -69,26 +71,22 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
 
     termRef.current = term;
 
-    // Listen Tauri events
+    // Listen to Tauri events — use static import (no dynamic import delay)
     let unlisten: (() => void) | undefined;
-    (async () => {
-      try {
-        const { listen } = await import('@tauri-apps/api/event');
-        unlisten = await listen<{ content: string; log_type: string }>(
-          `session-output-${sessionId}`,
-          (event) => {
-            const { content, log_type } = event.payload;
-            if (log_type === 'stderr') {
-              term.write(`\x1b[31m${content}\x1b[0m`);
-            } else {
-              term.write(content);
-            }
-          }
-        );
-      } catch {
-        // Browser fallback — listen to window CustomEvents
+    const eventName = `session-output-${sessionId}`;
+
+    listen<{ content: string; log_type: string }>(eventName, (event) => {
+      const { content, log_type } = event.payload;
+      if (log_type === 'stderr') {
+        term.write(`\x1b[31m${content}\x1b[0m`);
+      } else {
+        term.write(content);
       }
-    })();
+    })
+      .then((fn) => { unlisten = fn; })
+      .catch(() => {
+        // Not in Tauri — ignore
+      });
 
     // Browser fallback: listen to CustomEvent
     function handleBrowserEvent(e: Event) {
@@ -101,7 +99,7 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
         }
       }
     }
-    window.addEventListener(`session-output-${sessionId}`, handleBrowserEvent);
+    window.addEventListener(eventName, handleBrowserEvent);
 
     // Resize
     const observer = new ResizeObserver(() => {
@@ -111,7 +109,7 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
 
     return () => {
       observer.disconnect();
-      window.removeEventListener(`session-output-${sessionId}`, handleBrowserEvent);
+      window.removeEventListener(eventName, handleBrowserEvent);
       unlisten?.();
       term.dispose();
     };
