@@ -57,24 +57,24 @@ export function SkillsPage() {
   return (
     <div className="space-y-8 max-w-6xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="min-w-0">
           <h1 className="text-h1" style={{ color: 'var(--text-0)' }}>Skills</h1>
           <p className="text-body mt-1" style={{ color: 'var(--text-2)' }}>
             {enabledCount} activés sur {skills.length} installés
           </p>
         </div>
-        <button className="btn-primary flex items-center gap-2 px-4 py-2 text-sm"
+        <button className="btn-primary flex items-center gap-2 px-4 py-2 text-sm whitespace-nowrap shrink-0"
           style={{ borderRadius: 'var(--r-md)' }}>
           <Plus size={16} /> Créer un skill
         </button>
       </div>
 
       {/* Search + Filters */}
-      <div className="flex gap-3">
-        <div className="flex-1 flex items-center gap-3 px-4 py-2.5 border"
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3 px-4 py-3 border"
           style={{
-            background: 'var(--bg-2)',
+            background: 'var(--bg-3)',
             borderColor: 'var(--border-1)',
             borderRadius: 'var(--r-md)',
           }}>
@@ -83,14 +83,14 @@ export function SkillsPage() {
             placeholder="Rechercher un skill..." className="flex-1 bg-transparent outline-none text-sm"
             style={{ color: 'var(--text-0)' }} />
         </div>
-        <div className="flex overflow-hidden"
-          style={{ border: '1px solid var(--border-1)', borderRadius: 'var(--r-md)' }}>
+        <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
             <button key={c.value} onClick={() => setFilterCategory(c.value)}
-              className="px-3 py-2 text-xs transition-colors"
+              className="px-3 py-1.5 text-xs transition-colors rounded-lg"
               style={{
-                background: filterCategory === c.value ? 'var(--cyan-glow)' : 'transparent',
+                background: filterCategory === c.value ? 'var(--cyan-glow)' : 'var(--bg-2)',
                 color: filterCategory === c.value ? 'var(--cyan)' : 'var(--text-4)',
+                border: `1px solid ${filterCategory === c.value ? 'var(--cyan)' : 'var(--border-1)'}`,
               }}>
               {c.label}
             </button>
@@ -105,27 +105,27 @@ export function SkillsPage() {
             className="card card-glow-cyan noise p-5 cursor-pointer group"
             style={{ opacity: skill.isEnabled ? 1 : 0.6 }}
             onClick={() => setDetailSkill(skill)}>
-            <div className="flex items-start justify-between mb-2">
+            <div className="flex items-start justify-between mb-3">
               <span className="text-2xl">{skill.icon ?? '⚡'}</span>
               <button onClick={(e) => { e.stopPropagation(); toggleSkill(skill.id); }}
-                className="p-1 rounded-lg transition-colors"
+                className="p-1.5 rounded-lg transition-colors"
                 style={{ color: skill.isEnabled ? 'var(--green)' : 'var(--text-4)' }}>
                 <Power size={14} />
               </button>
             </div>
-            <div className="text-sm font-semibold mb-0.5" style={{ color: 'var(--text-0)' }}>
+            <div className="text-sm font-semibold mb-1 truncate" style={{ color: 'var(--text-0)' }}>
               {skill.name}
             </div>
             <div className="text-xs mb-2" style={{ color: 'var(--text-3)' }}>
               {skill.version} · {skill.isBuiltin ? 'builtin' : 'community'}
             </div>
             {skill.description && (
-              <p className="text-xs line-clamp-2" style={{ color: 'var(--text-2)' }}>
+              <p className="text-xs line-clamp-2 mb-3" style={{ color: 'var(--text-2)' }}>
                 {skill.description}
               </p>
             )}
-            <div className="mt-2 flex items-center gap-2">
-              <span className="text-xs px-2 py-0.5 rounded-full"
+            <div className="mt-auto flex items-center">
+              <span className="text-xs px-2.5 py-1 rounded-lg"
                 style={{
                   background: `${SKILL_CATEGORY_COLORS[skill.category]}15`,
                   color: SKILL_CATEGORY_COLORS[skill.category],
@@ -149,11 +149,11 @@ export function SkillsPage() {
               style={{ borderRadius: 'var(--r-xl)', transform: 'translate(-50%, -50%)' }}
               initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}>
-              <div className="p-5 space-y-4">
+              <div className="p-6 space-y-4">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{detailSkill.icon}</span>
-                  <div>
-                    <h3 className="text-h3" style={{ color: 'var(--text-0)' }}>{detailSkill.name}</h3>
+                  <div className="min-w-0">
+                    <h3 className="text-h3 truncate" style={{ color: 'var(--text-0)' }}>{detailSkill.name}</h3>
                     <div className="text-small" style={{ color: 'var(--text-3)' }}>
                       {detailSkill.version} · {detailSkill.isBuiltin ? 'Built-in' : 'Community'}
                     </div>
@@ -162,7 +162,7 @@ export function SkillsPage() {
                 <p className="text-body" style={{ color: 'var(--text-2)' }}>{detailSkill.description}</p>
                 <div className="flex gap-2">
                   <button onClick={() => { toggleSkill(detailSkill.id); setDetailSkill({ ...detailSkill, isEnabled: !detailSkill.isEnabled }); }}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium flex-1 justify-center"
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium flex-1 justify-center"
                     style={{
                       borderRadius: 'var(--r-md)',
                       background: detailSkill.isEnabled ? 'var(--red-glow)' : 'var(--green-glow)',
@@ -171,7 +171,7 @@ export function SkillsPage() {
                     <Power size={14} /> {detailSkill.isEnabled ? 'Désactiver' : 'Activer'}
                   </button>
                   <button onClick={() => setDetailSkill(null)}
-                    className="btn-ghost px-4 py-2 text-sm"
+                    className="btn-ghost px-4 py-2.5 text-sm"
                     style={{ borderRadius: 'var(--r-md)' }}>
                     Fermer
                   </button>

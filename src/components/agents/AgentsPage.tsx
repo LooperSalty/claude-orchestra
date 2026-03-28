@@ -30,7 +30,7 @@ const AGENT_ICONS = ['🏗️', '⚡', '🔍', '🐛', '🧪', '🎨', '📝', '
 
 function ViewToggle({ mode, onChange }: { mode: ViewMode; onChange: (m: ViewMode) => void }) {
   return (
-    <div className="flex overflow-hidden" style={{ borderRadius: 'var(--r-md)', border: '1px solid var(--border-1)' }}>
+    <div className="flex overflow-hidden shrink-0" style={{ borderRadius: 'var(--r-md)', border: '1px solid var(--border-1)' }}>
       <button
         onClick={() => onChange('grid')}
         className="flex items-center gap-1.5 px-3 py-1.5 text-small font-medium transition-colors"
@@ -90,17 +90,17 @@ export function AgentsPage() {
 
   return (
     <div className={viewMode === 'world' ? 'flex flex-col h-full' : 'space-y-8 max-w-6xl'}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="min-w-0">
           <h1 className="text-h1" style={{ color: 'var(--text-0)' }}>Agents</h1>
           <p className="text-body mt-1" style={{ color: 'var(--text-2)' }}>
             Profils de configuration réutilisables pour Claude Code
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <ViewToggle mode={viewMode} onChange={setViewMode} />
           <button onClick={handleNew}
-            className="btn-primary flex items-center gap-2 px-4 py-2 text-sm"
+            className="btn-primary flex items-center gap-2 px-4 py-2 text-sm whitespace-nowrap"
             style={{ borderRadius: 'var(--r-md)' }}>
             <Plus size={16} /> Nouvel agent
           </button>
@@ -113,9 +113,9 @@ export function AgentsPage() {
             <motion.div key={agent.id} custom={i} variants={cardVariants}
               initial="initial" animate="animate"
               onClick={() => handleEdit(agent)}
-              className={`card ${AGENT_GLOW_CLASSES[i % AGENT_GLOW_CLASSES.length]} noise p-5 cursor-pointer group`}>
+              className={`card ${AGENT_GLOW_CLASSES[i % AGENT_GLOW_CLASSES.length]} noise p-6 cursor-pointer group`}>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-11 h-11 flex items-center justify-center text-lg"
+                <div className="w-11 h-11 flex items-center justify-center text-lg shrink-0"
                   style={{
                     borderRadius: 'var(--r-md)',
                     background: `${AGENT_COLORS[i % AGENT_COLORS.length]}15`,
@@ -127,11 +127,11 @@ export function AgentsPage() {
                   <div className="text-sm font-semibold truncate" style={{ color: 'var(--text-0)' }}>
                     {agent.name}
                   </div>
-                  <div className="text-small mono" style={{ color: 'var(--text-4)' }}>
+                  <div className="text-small mono truncate" style={{ color: 'var(--text-4)' }}>
                     {agent.model.replace('claude-', '')}
                   </div>
                 </div>
-                <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg"
+                <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg shrink-0"
                   style={{ color: 'var(--text-3)' }} onClick={(e) => { e.stopPropagation(); handleEdit(agent); }}>
                   <Edit2 size={14} />
                 </button>

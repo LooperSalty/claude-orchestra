@@ -39,7 +39,7 @@ export function AppShell() {
       <Sidebar />
       <div className="flex flex-1 flex-col min-w-0">
         <TopBar />
-        <main className="flex-1 overflow-auto relative" style={{ background: 'var(--bg-1)' }}>
+        <main className="flex-1 overflow-auto overflow-x-hidden relative" style={{ background: 'var(--bg-1)' }}>
           <div className="dot-pattern absolute inset-0 pointer-events-none" />
           <AnimatePresence mode="wait">
             <motion.div
@@ -48,7 +48,7 @@ export function AppShell() {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="relative z-10 h-full px-10 py-8"
+              className="relative z-10 h-full px-6 py-6"
             >
               <PageComponent />
             </motion.div>
