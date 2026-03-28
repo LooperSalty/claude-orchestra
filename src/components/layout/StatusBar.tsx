@@ -1,6 +1,16 @@
 import { useSessionStore } from '@/stores/sessionStore';
 import { useMetricsStore } from '@/stores/metricsStore';
 
+function Separator() {
+  return (
+    <span style={{
+      width: 3, height: 3, borderRadius: '50%',
+      background: 'var(--text-4)', opacity: 0.4,
+      display: 'inline-block', flexShrink: 0,
+    }} />
+  );
+}
+
 export function StatusBar() {
   const activeSessions = useSessionStore((s) =>
     s.sessions.filter((sess) => sess.status === 'running').length
@@ -11,26 +21,36 @@ export function StatusBar() {
 
   return (
     <footer
-      className="flex items-center justify-between h-6 px-4 text-[10px] font-mono border-t shrink-0"
+      className="flex items-center justify-between shrink-0 font-mono"
       style={{
-        background: 'var(--bg-1)',
-        borderColor: 'var(--border-0)',
+        height: 30, paddingInline: 16, fontSize: 10,
+        background: 'var(--bg-1)', borderTop: '1px solid var(--border-0)',
         color: 'var(--text-4)',
       }}
     >
-      <div className="flex items-center gap-4">
-        <span className="flex items-center gap-1.5">
+      <div className="flex items-center" style={{ gap: 12 }}>
+        <span className="flex items-center" style={{ gap: 6 }}>
           <span
-            className={`w-[5px] h-[5px] rounded-full ${activeSessions > 0 ? 'status-live' : 'status-idle'}`}
+            style={{
+              width: 6, height: 6, borderRadius: '50%', display: 'inline-block', flexShrink: 0,
+              background: activeSessions > 0 ? 'var(--green)' : 'var(--text-4)',
+              boxShadow: activeSessions > 0 ? '0 0 8px var(--green)' : 'none',
+              animation: activeSessions > 0 ? 'pulse 2s ease-in-out infinite' : 'none',
+            }}
           />
-          {activeSessions} active
+          <span style={{ color: activeSessions > 0 ? 'var(--text-2)' : 'var(--text-4)' }}>
+            {activeSessions} active
+          </span>
         </span>
+        <Separator />
         <span>{stats.totalTokensToday.toLocaleString()} tok</span>
+        <Separator />
         <span>${(stats.totalCostToday / 100).toFixed(2)}</span>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center" style={{ gap: 12 }}>
         <span>{time}</span>
-        <span style={{ color: 'var(--text-4)' }}>v0.1.0</span>
+        <Separator />
+        <span>v0.1.0</span>
       </div>
     </footer>
   );

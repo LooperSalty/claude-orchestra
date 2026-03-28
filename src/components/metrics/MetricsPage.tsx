@@ -13,7 +13,6 @@ const cardVariants = {
   }),
 };
 
-// Demo data
 const TOKEN_DATA = [
   { day: 'Lun', tokens: 12400, cost: 18 },
   { day: 'Mar', tokens: 28300, cost: 42 },
@@ -25,16 +24,16 @@ const TOKEN_DATA = [
 ];
 
 const MODEL_DATA = [
-  { name: 'Sonnet 4.6', value: 62, color: '#4f7df9' },
-  { name: 'Opus 4.6', value: 25, color: '#a78bfa' },
-  { name: 'Haiku 4.5', value: 13, color: '#22d3ee' },
+  { name: 'Sonnet 4.6', value: 62, color: '#00d4ff' },
+  { name: 'Opus 4.6', value: 25, color: '#8b5cf6' },
+  { name: 'Haiku 4.5', value: 13, color: '#00ff88' },
 ];
 
 const LATENCY_DATA = [
   { range: '<100ms', count: 45 },
-  { range: '100-300ms', count: 120 },
-  { range: '300-500ms', count: 85 },
-  { range: '500ms-1s', count: 38 },
+  { range: '100-300', count: 120 },
+  { range: '300-500', count: 85 },
+  { range: '500-1s', count: 38 },
   { range: '1-3s', count: 22 },
   { range: '>3s', count: 8 },
 ];
@@ -46,21 +45,47 @@ for (let w = 0; w < 12; w++) {
   }
 }
 
-const HEATMAP_COLORS = ['var(--bg-hover)', '#1a3a2a', '#1f5f3a', '#2a8a4a', '#33b85a'];
+const HEATMAP_COLORS = ['var(--bg-4)', '#0a3324', '#0f5a3a', '#18854e', '#22b566'];
+
+const tooltipStyle = {
+  background: 'var(--bg-3)',
+  border: '1px solid var(--border-2)',
+  borderRadius: 10,
+  fontSize: 12,
+  color: 'var(--text-1)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+};
+
+function SectionTitle({ dot, children }: { dot: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5" style={{ marginBottom: 20 }}>
+      <div style={{ width: 7, height: 7, borderRadius: '50%', background: dot, boxShadow: `0 0 8px ${dot}40` }} />
+      <h3 className="font-display font-semibold" style={{ color: 'var(--text-1)', fontSize: 14 }}>
+        {children}
+      </h3>
+    </div>
+  );
+}
 
 function StatCard({ index, icon: Icon, label, value, sub, accent }: {
   index: number; icon: React.ElementType; label: string; value: string; sub?: string; accent: string;
 }) {
   return (
     <motion.div custom={index} variants={cardVariants} initial="initial" animate="animate"
-      className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-      <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: `${accent}20`, color: accent }}><Icon size={16} /></div>
-        <span className="text-caption" style={{ color: 'var(--text-tertiary)' }}>{label}</span>
+      className="card"
+      style={{ padding: '20px', background: 'linear-gradient(135deg, var(--bg-2), var(--bg-3))' }}>
+      <div className="flex items-center gap-2.5" style={{ marginBottom: 14 }}>
+        <div className="flex items-center justify-center"
+          style={{
+            width: 34, height: 34, borderRadius: 10,
+            background: `${accent}12`, boxShadow: `0 0 16px ${accent}10`,
+          }}>
+          <Icon size={15} style={{ color: accent }} />
+        </div>
+        <span style={{ color: 'var(--text-3)', fontSize: 12 }}>{label}</span>
       </div>
-      <div className="text-h2" style={{ color: 'var(--text-primary)' }}>{value}</div>
-      {sub && <div className="text-small mt-1" style={{ color: 'var(--text-tertiary)' }}>{sub}</div>}
+      <div className="font-display font-bold" style={{ color: 'var(--text-0)', fontSize: '1.5rem' }}>{value}</div>
+      {sub && <div className="font-mono" style={{ color: 'var(--text-4)', fontSize: 11, marginTop: 6 }}>{sub}</div>}
     </motion.div>
   );
 }
@@ -70,82 +95,82 @@ export function MetricsPage() {
   const totalCost = TOKEN_DATA.reduce((s, d) => s + d.cost, 0);
 
   return (
-    <div className="space-y-8 max-w-6xl">
+    <div className="max-w-6xl" style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
+      {/* Page Header */}
       <div>
-        <h1 className="text-h1" style={{ color: 'var(--text-primary)' }}>Métriques</h1>
-        <p className="text-body mt-1" style={{ color: 'var(--text-secondary)' }}>
-          Utilisation, coûts et performance — 7 derniers jours
+        <h1 className="font-display font-bold tracking-tight" style={{ color: 'var(--text-0)', fontSize: '1.75rem' }}>
+          Metriques
+        </h1>
+        <p style={{ color: 'var(--text-3)', fontSize: 13, marginTop: 8 }}>
+          Utilisation, couts et performance — 7 derniers jours
         </p>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-        <StatCard index={0} icon={Activity} label="Tokens cette semaine" value={totalTokens.toLocaleString()} accent="var(--accent-primary)" sub="+12% vs semaine dernière" />
-        <StatCard index={1} icon={Coins} label="Coût cette semaine" value={`$${(totalCost / 100).toFixed(2)}`} accent="var(--accent-warning)" sub="Budget: $5.00" />
-        <StatCard index={2} icon={Zap} label="Latence moyenne" value="230ms" accent="var(--accent-cyan)" sub="P95: 890ms" />
-        <StatCard index={3} icon={TrendingUp} label="Sessions cette semaine" value="18" accent="var(--accent-success)" sub="3 actives maintenant" />
+      <div className="grid grid-cols-2 lg:grid-cols-4" style={{ gap: 14 }}>
+        <StatCard index={0} icon={Activity} label="Tokens cette semaine" value={totalTokens.toLocaleString()} accent="var(--cyan)" sub="+12% vs semaine derniere" />
+        <StatCard index={1} icon={Coins} label="Cout cette semaine" value={`$${(totalCost / 100).toFixed(2)}`} accent="var(--amber)" sub="Budget: $5.00" />
+        <StatCard index={2} icon={Zap} label="Latence moyenne" value="230ms" accent="var(--violet)" sub="P95: 890ms" />
+        <StatCard index={3} icon={TrendingUp} label="Sessions cette semaine" value="18" accent="var(--green)" sub="3 actives maintenant" />
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Token usage area chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-2" style={{ gap: 16 }}>
+        {/* Token usage */}
         <motion.div custom={4} variants={cardVariants} initial="initial" animate="animate"
-          className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-          <h3 className="text-h3 mb-4" style={{ color: 'var(--text-primary)' }}>Tokens par jour</h3>
+          className="card" style={{ padding: 24 }}>
+          <SectionTitle dot="var(--cyan)">Tokens par jour</SectionTitle>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={TOKEN_DATA}>
               <defs>
                 <linearGradient id="tokenGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4f7df9" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#4f7df9" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1a1c2e" />
-              <XAxis dataKey="day" stroke="#555873" fontSize={11} />
-              <YAxis stroke="#555873" fontSize={11} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={{ background: '#161825', border: '1px solid #252840', borderRadius: 8, fontSize: 12, color: '#e8e9f0' }}
-                formatter={(value) => [Number(value).toLocaleString(), 'Tokens']} />
-              <Area type="monotone" dataKey="tokens" stroke="#4f7df9" strokeWidth={2} fill="url(#tokenGradient)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="day" stroke="var(--text-4)" fontSize={11} tickLine={false} axisLine={false} />
+              <YAxis stroke="var(--text-4)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(value) => [Number(value).toLocaleString(), 'Tokens']} />
+              <Area type="monotone" dataKey="tokens" stroke="#00d4ff" strokeWidth={2} fill="url(#tokenGradient)" />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
 
         {/* Cost bar chart */}
         <motion.div custom={5} variants={cardVariants} initial="initial" animate="animate"
-          className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-          <h3 className="text-h3 mb-4" style={{ color: 'var(--text-primary)' }}>Coût par jour (cents)</h3>
+          className="card" style={{ padding: 24 }}>
+          <SectionTitle dot="var(--amber)">Cout par jour (cents)</SectionTitle>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={TOKEN_DATA}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1a1c2e" />
-              <XAxis dataKey="day" stroke="#555873" fontSize={11} />
-              <YAxis stroke="#555873" fontSize={11} />
-              <Tooltip contentStyle={{ background: '#161825', border: '1px solid #252840', borderRadius: 8, fontSize: 12, color: '#e8e9f0' }}
-                formatter={(value) => [`${value}¢`, 'Coût']} />
-              <Bar dataKey="cost" fill="#ffb224" radius={[4, 4, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="day" stroke="var(--text-4)" fontSize={11} tickLine={false} axisLine={false} />
+              <YAxis stroke="var(--text-4)" fontSize={11} tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(value) => [`${value}c`, 'Cout']} />
+              <Bar dataKey="cost" fill="#ffb800" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
       </div>
 
       {/* Bottom row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3" style={{ gap: 16 }}>
         {/* Model distribution */}
         <motion.div custom={6} variants={cardVariants} initial="initial" animate="animate"
-          className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-          <h3 className="text-h3 mb-4" style={{ color: 'var(--text-primary)' }}>Par modèle</h3>
+          className="card" style={{ padding: 24 }}>
+          <SectionTitle dot="var(--violet)">Par modele</SectionTitle>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
-              <Pie data={MODEL_DATA} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3}>
+              <Pie data={MODEL_DATA} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={3} strokeWidth={0}>
                 {MODEL_DATA.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
               </Pie>
-              <Tooltip contentStyle={{ background: '#161825', border: '1px solid #252840', borderRadius: 8, fontSize: 12, color: '#e8e9f0' }}
-                formatter={(value) => [`${value}%`, 'Usage']} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(value) => [`${value}%`, 'Usage']} />
             </PieChart>
           </ResponsiveContainer>
-          <div className="flex justify-center gap-4 mt-2">
+          <div className="flex justify-center gap-5" style={{ marginTop: 8 }}>
             {MODEL_DATA.map((m) => (
-              <div key={m.name} className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                <span className="w-2 h-2 rounded-full" style={{ background: m.color }} />
+              <div key={m.name} className="flex items-center gap-2" style={{ fontSize: 11, color: 'var(--text-2)' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: m.color, display: 'inline-block', boxShadow: `0 0 6px ${m.color}40` }} />
                 {m.name}
               </div>
             ))}
@@ -154,40 +179,44 @@ export function MetricsPage() {
 
         {/* Latency distribution */}
         <motion.div custom={7} variants={cardVariants} initial="initial" animate="animate"
-          className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-          <h3 className="text-h3 mb-4" style={{ color: 'var(--text-primary)' }}>Distribution latence</h3>
+          className="card" style={{ padding: 24 }}>
+          <SectionTitle dot="var(--green)">Distribution latence</SectionTitle>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={LATENCY_DATA}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1a1c2e" />
-              <XAxis dataKey="range" stroke="#555873" fontSize={9} />
-              <YAxis stroke="#555873" fontSize={11} />
-              <Tooltip contentStyle={{ background: '#161825', border: '1px solid #252840', borderRadius: 8, fontSize: 12, color: '#e8e9f0' }} />
-              <Bar dataKey="count" fill="#22d3ee" radius={[3, 3, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="range" stroke="var(--text-4)" fontSize={9} tickLine={false} axisLine={false} />
+              <YAxis stroke="var(--text-4)" fontSize={11} tickLine={false} axisLine={false} />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Bar dataKey="count" fill="#00d4ff" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
 
         {/* Activity heatmap */}
         <motion.div custom={8} variants={cardVariants} initial="initial" animate="animate"
-          className="rounded-xl border p-5" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-          <h3 className="text-h3 mb-4" style={{ color: 'var(--text-primary)' }}>Activité</h3>
-          <div className="flex gap-0.5">
+          className="card" style={{ padding: 24 }}>
+          <SectionTitle dot="var(--amber)">Activite</SectionTitle>
+          <div className="flex" style={{ gap: 3, justifyContent: 'center' }}>
             {Array.from({ length: 12 }, (_, w) => (
-              <div key={w} className="flex flex-col gap-0.5">
+              <div key={w} className="flex flex-col" style={{ gap: 3 }}>
                 {Array.from({ length: 7 }, (_, d) => {
                   const entry = ACTIVITY_DATA.find((a) => a.week === w && a.day === d);
+                  const val = entry?.value ?? 0;
                   return (
-                    <div key={d} className="w-3.5 h-3.5 rounded-sm"
-                      style={{ background: HEATMAP_COLORS[entry?.value ?? 0] }} />
+                    <div key={d} style={{
+                      width: 14, height: 14, borderRadius: 3,
+                      background: HEATMAP_COLORS[val],
+                      transition: 'background 0.15s ease',
+                    }} />
                   );
                 })}
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-1 mt-3 text-xs" style={{ color: 'var(--text-ghost)' }}>
+          <div className="flex items-center justify-center" style={{ gap: 6, marginTop: 16, fontSize: 10, color: 'var(--text-4)' }}>
             <span>Moins</span>
             {HEATMAP_COLORS.map((c, i) => (
-              <div key={i} className="w-3 h-3 rounded-sm" style={{ background: c }} />
+              <div key={i} style={{ width: 12, height: 12, borderRadius: 3, background: c }} />
             ))}
             <span>Plus</span>
           </div>

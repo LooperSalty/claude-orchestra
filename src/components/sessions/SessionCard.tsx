@@ -24,24 +24,45 @@ const cardVariants = {
 function getStatusStyle(status: string) {
   switch (status) {
     case 'running':
-      return { bg: 'var(--accent-success)', glow: 'var(--accent-success-glow)', label: 'Running' };
+      return { color: 'var(--green)', glow: 'card-glow-green', label: 'Running' };
     case 'error':
-      return { bg: 'var(--accent-error)', glow: 'var(--accent-error-glow)', label: 'Error' };
+      return { color: 'var(--red)', glow: '', label: 'Error' };
     case 'paused':
-      return { bg: 'var(--accent-warning)', glow: 'var(--accent-warning-glow)', label: 'Paused' };
+      return { color: 'var(--amber)', glow: '', label: 'Paused' };
     default:
-      return { bg: 'var(--text-ghost)', glow: 'transparent', label: 'Stopped' };
+      return { color: 'var(--text-4)', glow: '', label: 'Stopped' };
   }
 }
 
 function formatUptime(startedAt?: string): string {
-  if (!startedAt) return '—';
+  if (!startedAt) return '\u2014';
   const start = new Date(startedAt).getTime();
   const diff = Date.now() - start;
   const minutes = Math.floor(diff / 60000);
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
   return `${hours}h ${minutes % 60}m`;
+}
+
+function ActionButton({ onClick, color, children, title }: {
+  onClick: (e: React.MouseEvent) => void; color: string; children: React.ReactNode; title?: string;
+}) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick(e); }}
+      className="flex items-center gap-1.5 transition-all"
+      title={title}
+      style={{
+        padding: '6px 10px', borderRadius: 8, fontSize: 11,
+        background: 'var(--bg-4)', color,
+        border: '1px solid var(--border-0)',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-4)'; }}
+    >
+      {children}
+    </button>
+  );
 }
 
 export const SessionCard = memo(function SessionCard({
@@ -56,97 +77,92 @@ export const SessionCard = memo(function SessionCard({
       initial="initial"
       animate="animate"
       onClick={onSelect}
-      className={`rounded-xl border p-4 space-y-3 cursor-pointer transition-all duration-200 ${
-        session.status === 'running' ? 'glow-green' : ''
-      }`}
+      className={`card ${status.glow}`}
       style={{
-        background: isSelected ? 'var(--bg-elevated)' : 'var(--bg-surface)',
-        borderColor: isSelected ? 'var(--accent-primary)' : 'var(--border-subtle)',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        background: isSelected ? 'var(--bg-3)' : 'var(--bg-2)',
+        borderLeft: `3px solid ${status.color}`,
+        borderColor: isSelected ? 'var(--cyan)' : undefined,
+        padding: 0,
+        overflow: 'hidden',
       }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div style={{ padding: '18px 18px 16px' }}>
+        {/* Header */}
+        <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+          <div className="flex items-center gap-2.5">
+            <span
+              className={session.status === 'running' ? 'status-live' : ''}
+              style={{
+                width: 9, height: 9, borderRadius: '50%', display: 'inline-block', flexShrink: 0,
+                background: status.color,
+                boxShadow: session.status === 'running' ? `0 0 10px var(--green)` : 'none',
+              }}
+            />
+            <span className="font-mono font-semibold" style={{ color: 'var(--text-0)', fontSize: 14 }}>
+              {session.id.slice(0, 8)}
+            </span>
+          </div>
           <span
-            className={`w-2.5 h-2.5 rounded-full ${
-              session.status === 'running' ? 'pulse-running' : ''
-            }`}
-            style={{ background: status.bg }}
-          />
-          <span className="text-sm font-medium mono" style={{ color: 'var(--text-primary)' }}>
-            {session.id.slice(0, 8)}
+            className="font-mono"
+            style={{
+              fontSize: 10, padding: '3px 10px', borderRadius: 20,
+              background: `${status.color}15`, color: status.color,
+              fontWeight: 600, letterSpacing: 0.3,
+            }}
+          >
+            {status.label}
           </span>
         </div>
-        <span
-          className="text-caption px-2 py-0.5 rounded-full"
-          style={{ background: status.glow, color: status.bg }}
-        >
-          {status.label}
-        </span>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-2 text-small" style={{ color: 'var(--text-secondary)' }}>
-        <div>
-          <span style={{ color: 'var(--text-ghost)' }}>Model </span>
-          <span className="mono">{session.model.replace('claude-', '')}</span>
+        {/* Stats */}
+        <div className="grid grid-cols-2" style={{ gap: '10px 16px' }}>
+          {[
+            { label: 'Model', value: session.model.replace('claude-', ''), isBadge: true },
+            { label: 'Tokens', value: session.totalTokensUsed.toLocaleString() },
+            { label: 'Cost', value: `$${(session.totalCostCents / 100).toFixed(2)}` },
+            { label: 'Uptime', value: formatUptime(session.startedAt) },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <div style={{ color: 'var(--text-4)', fontSize: 10, marginBottom: 2 }}>{stat.label}</div>
+              {stat.isBadge ? (
+                <span className="font-mono" style={{
+                  fontSize: 11, padding: '2px 8px', borderRadius: 6,
+                  background: 'var(--bg-4)', color: 'var(--text-1)',
+                  display: 'inline-block',
+                }}>
+                  {stat.value}
+                </span>
+              ) : (
+                <div className="font-mono" style={{ color: 'var(--text-1)', fontSize: 12 }}>{stat.value}</div>
+              )}
+            </div>
+          ))}
         </div>
-        <div>
-          <span style={{ color: 'var(--text-ghost)' }}>Tokens </span>
-          <span className="mono">{session.totalTokensUsed.toLocaleString()}</span>
-        </div>
-        <div>
-          <span style={{ color: 'var(--text-ghost)' }}>Cost </span>
-          <span className="mono">${(session.totalCostCents / 100).toFixed(2)}</span>
-        </div>
-        <div>
-          <span style={{ color: 'var(--text-ghost)' }}>Uptime </span>
-          <span className="mono">{formatUptime(session.startedAt)}</span>
-        </div>
-      </div>
 
-      {/* Actions */}
-      <div className="flex gap-1.5">
-        <button
-          onClick={(e) => { e.stopPropagation(); onOpenTerminal(); }}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs transition-colors"
-          style={{ background: 'var(--bg-hover)', color: 'var(--accent-primary)' }}
-          title="Open terminal"
-        >
-          <TerminalIcon size={12} /> Terminal
-        </button>
-        {session.status === 'running' ? (
-          <button
-            onClick={(e) => { e.stopPropagation(); onStop(); }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs transition-colors"
-            style={{ background: 'var(--bg-hover)', color: 'var(--accent-error)' }}
-          >
-            <Square size={12} /> Stop
-          </button>
-        ) : (
-          <button
-            onClick={(e) => { e.stopPropagation(); onRestart(); }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs transition-colors"
-            style={{ background: 'var(--bg-hover)', color: 'var(--accent-success)' }}
-          >
-            <Play size={12} /> Start
-          </button>
-        )}
-        <button
-          onClick={(e) => { e.stopPropagation(); onRestart(); }}
-          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs transition-colors"
-          style={{ background: 'var(--bg-hover)', color: 'var(--text-tertiary)' }}
-        >
-          <RotateCcw size={12} />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onOpenTerminal(); }}
-          className="ml-auto flex items-center px-2 py-1.5 rounded-lg text-xs transition-colors"
-          style={{ background: 'var(--bg-hover)', color: 'var(--text-tertiary)' }}
-          title="Fullscreen"
-        >
-          <Maximize2 size={12} />
-        </button>
+        {/* Actions */}
+        <div className="flex" style={{ gap: 6, marginTop: 16 }}>
+          <ActionButton onClick={onOpenTerminal} color="var(--cyan)" title="Open terminal">
+            <TerminalIcon size={12} /> Terminal
+          </ActionButton>
+          {session.status === 'running' ? (
+            <ActionButton onClick={onStop} color="var(--red)">
+              <Square size={12} /> Stop
+            </ActionButton>
+          ) : (
+            <ActionButton onClick={onRestart} color="var(--green)">
+              <Play size={12} /> Start
+            </ActionButton>
+          )}
+          <ActionButton onClick={onRestart} color="var(--text-3)">
+            <RotateCcw size={12} />
+          </ActionButton>
+          <div style={{ flex: 1 }} />
+          <ActionButton onClick={onOpenTerminal} color="var(--text-3)" title="Fullscreen">
+            <Maximize2 size={12} />
+          </ActionButton>
+        </div>
       </div>
     </motion.div>
   );

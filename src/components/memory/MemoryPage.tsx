@@ -84,30 +84,29 @@ export function MemoryPage() {
       {/* Left panel — File explorer */}
       <div className="w-72 shrink-0 space-y-4">
         <div>
-          <h1 className="text-h1" style={{ color: 'var(--text-primary)' }}>Memory</h1>
-          <p className="text-body mt-1" style={{ color: 'var(--text-secondary)' }}>
+          <h1 className="text-h1" style={{ color: 'var(--text-0)' }}>Memory</h1>
+          <p className="text-body mt-1" style={{ color: 'var(--text-2)' }}>
             Fichiers CLAUDE.md et mémoire
           </p>
         </div>
 
         <div className="flex gap-2">
           <button onClick={handleScan}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm flex-1"
-            style={{ background: 'var(--accent-primary)', color: 'white' }}>
+            className="btn-primary flex items-center gap-1.5 px-3 py-2 text-sm flex-1"
+            style={{ borderRadius: 'var(--r-md)' }}>
             <FolderOpen size={14} /> Scanner
           </button>
           <button onClick={() => setShowTemplates(!showTemplates)}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm border"
-            style={{ borderColor: 'var(--border-default)', color: 'var(--text-secondary)' }}>
+            className="btn-ghost flex items-center gap-1.5 px-3 py-2 text-sm"
+            style={{ borderRadius: 'var(--r-md)' }}>
             <FileText size={14} /> Templates
           </button>
         </div>
 
         {/* File tree */}
-        <div className="rounded-xl border overflow-hidden"
-          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+        <div className="card overflow-hidden">
           {scannedFiles.length === 0 ? (
-            <div className="p-4 text-center text-small" style={{ color: 'var(--text-tertiary)' }}>
+            <div className="p-4 text-center text-small" style={{ color: 'var(--text-3)' }}>
               Cliquez sur "Scanner" pour découvrir les fichiers de mémoire
             </div>
           ) : (
@@ -116,17 +115,17 @@ export function MemoryPage() {
                 <button key={file.path} onClick={() => handleSelectFile(file)}
                   className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left transition-colors"
                   style={{
-                    background: selectedFile?.path === file.path ? 'var(--accent-primary-glow)' : 'transparent',
-                    color: selectedFile?.path === file.path ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                    background: selectedFile?.path === file.path ? 'var(--cyan-glow)' : 'transparent',
+                    color: selectedFile?.path === file.path ? 'var(--cyan)' : 'var(--text-2)',
                   }}>
                   <File size={14} />
                   <div className="flex-1 min-w-0">
                     <div className="truncate">{file.name}</div>
                     {file.projectName && (
-                      <div className="text-xs truncate" style={{ color: 'var(--text-ghost)' }}>{file.projectName}</div>
+                      <div className="text-xs truncate" style={{ color: 'var(--text-4)' }}>{file.projectName}</div>
                     )}
                   </div>
-                  <ChevronRight size={12} style={{ color: 'var(--text-ghost)' }} />
+                  <ChevronRight size={12} style={{ color: 'var(--text-4)' }} />
                 </button>
               ))}
             </div>
@@ -138,15 +137,16 @@ export function MemoryPage() {
           {showTemplates && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-              <div className="rounded-xl border p-3 space-y-2"
-                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-                <div className="text-caption" style={{ color: 'var(--text-tertiary)' }}>Templates</div>
+              <div className="card p-3 space-y-2">
+                <div className="text-caption" style={{ color: 'var(--text-3)' }}>Templates</div>
                 {MEMORY_TEMPLATES.map((t) => (
                   <button key={t.name} onClick={() => handleApplyTemplate(t)}
-                    className="w-full text-left rounded-lg px-3 py-2 transition-colors"
-                    style={{ color: 'var(--text-secondary)' }}>
-                    <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{t.name}</div>
-                    <div className="text-xs" style={{ color: 'var(--text-ghost)' }}>{t.description}</div>
+                    className="w-full text-left px-3 py-2 transition-colors"
+                    style={{ color: 'var(--text-2)', borderRadius: 'var(--r-md)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}>
+                    <div className="text-sm font-medium" style={{ color: 'var(--text-0)' }}>{t.name}</div>
+                    <div className="text-xs" style={{ color: 'var(--text-4)' }}>{t.description}</div>
                   </button>
                 ))}
               </div>
@@ -158,29 +158,29 @@ export function MemoryPage() {
       {/* Right panel — Editor */}
       <div className="flex-1 flex flex-col min-w-0">
         {selectedFile || editorContent ? (
-          <div className="flex flex-col h-full rounded-xl border overflow-hidden"
-            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+          <div className="card flex flex-col h-full overflow-hidden">
             {/* Editor toolbar */}
             <div className="flex items-center justify-between px-4 py-2 border-b shrink-0"
-              style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-elevated)' }}>
+              style={{ borderColor: 'var(--border-0)', background: 'var(--bg-3)' }}>
               <div className="flex items-center gap-2">
-                <FileText size={14} style={{ color: 'var(--accent-cyan)' }} />
-                <span className="text-sm mono" style={{ color: 'var(--text-primary)' }}>
+                <FileText size={14} style={{ color: 'var(--cyan)' }} />
+                <span className="text-sm mono" style={{ color: 'var(--text-0)' }}>
                   {selectedFile?.name ?? 'Nouveau fichier'}
                 </span>
               </div>
               <div className="flex items-center gap-1">
                 <button onClick={() => setShowPreview(!showPreview)}
-                  className="flex items-center gap-1 px-2 py-1 rounded text-xs"
+                  className="flex items-center gap-1 px-2 py-1 text-xs transition-colors"
                   style={{
-                    background: showPreview ? 'var(--accent-primary-glow)' : 'transparent',
-                    color: showPreview ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                    borderRadius: 'var(--r-sm)',
+                    background: showPreview ? 'var(--cyan-glow)' : 'transparent',
+                    color: showPreview ? 'var(--cyan)' : 'var(--text-3)',
                   }}>
                   {showPreview ? <Eye size={12} /> : <Code size={12} />}
                   {showPreview ? 'Preview' : 'Code'}
                 </button>
-                <button className="flex items-center gap-1 px-2 py-1 rounded text-xs"
-                  style={{ color: 'var(--accent-success)' }}>
+                <button className="flex items-center gap-1 px-2 py-1 text-xs"
+                  style={{ borderRadius: 'var(--r-sm)', color: 'var(--green)' }}>
                   <Save size={12} /> Save
                 </button>
               </div>
@@ -191,18 +191,18 @@ export function MemoryPage() {
               <textarea value={editorContent} onChange={(e) => setEditorContent(e.target.value)}
                 className={`${showPreview ? 'w-1/2 border-r' : 'w-full'} h-full p-4 text-sm bg-transparent outline-none resize-none mono`}
                 style={{
-                  color: 'var(--text-primary)',
-                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-0)',
+                  borderColor: 'var(--border-0)',
                   lineHeight: 1.6,
                 }}
                 spellCheck={false} />
               {showPreview && (
                 <div className="w-1/2 h-full p-4 overflow-y-auto text-sm"
-                  style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                  style={{ color: 'var(--text-2)', lineHeight: 1.6 }}>
                   {editorContent.split('\n').map((line, i) => {
-                    if (line.startsWith('# ')) return <h1 key={i} className="text-h1 mb-2" style={{ color: 'var(--text-primary)' }}>{line.slice(2)}</h1>;
-                    if (line.startsWith('## ')) return <h2 key={i} className="text-h2 mb-2 mt-4" style={{ color: 'var(--text-primary)' }}>{line.slice(3)}</h2>;
-                    if (line.startsWith('### ')) return <h3 key={i} className="text-h3 mb-1 mt-3" style={{ color: 'var(--text-primary)' }}>{line.slice(4)}</h3>;
+                    if (line.startsWith('# ')) return <h1 key={i} className="text-h1 mb-2" style={{ color: 'var(--text-0)' }}>{line.slice(2)}</h1>;
+                    if (line.startsWith('## ')) return <h2 key={i} className="text-h2 mb-2 mt-4" style={{ color: 'var(--text-0)' }}>{line.slice(3)}</h2>;
+                    if (line.startsWith('### ')) return <h3 key={i} className="text-h3 mb-1 mt-3" style={{ color: 'var(--text-0)' }}>{line.slice(4)}</h3>;
                     if (line.startsWith('- ')) return <div key={i} className="pl-4">• {line.slice(2)}</div>;
                     if (line.trim() === '') return <div key={i} className="h-2" />;
                     return <div key={i}>{line}</div>;
@@ -213,21 +213,20 @@ export function MemoryPage() {
 
             {/* Status */}
             <div className="flex items-center justify-between px-4 py-1.5 border-t text-xs"
-              style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-ghost)' }}>
+              style={{ borderColor: 'var(--border-0)', color: 'var(--text-4)' }}>
               <span>{editorContent.split('\n').length} lignes</span>
               <span>~{Math.ceil(editorContent.length / 4)} tokens estimés</span>
             </div>
           </div>
         ) : (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border p-12 text-center flex-1 flex flex-col items-center justify-center"
-            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: 'rgba(34, 211, 238, 0.15)', color: 'var(--accent-cyan)' }}>
+            className="card noise p-12 text-center flex-1 flex flex-col items-center justify-center">
+            <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4"
+              style={{ borderRadius: 'var(--r-xl)', background: 'var(--cyan-glow)', color: 'var(--cyan)' }}>
               <Brain size={28} />
             </div>
-            <h3 className="text-h3 mb-2" style={{ color: 'var(--text-primary)' }}>Memory Explorer</h3>
-            <p className="text-body mb-4" style={{ color: 'var(--text-secondary)' }}>
+            <h3 className="text-h3 mb-2" style={{ color: 'var(--text-0)' }}>Memory Explorer</h3>
+            <p className="text-body mb-4" style={{ color: 'var(--text-2)' }}>
               Scannez vos projets ou choisissez un template pour commencer.
             </p>
           </motion.div>

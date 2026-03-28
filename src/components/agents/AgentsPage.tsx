@@ -18,22 +18,26 @@ const cardVariants = {
 };
 
 const AGENT_COLORS = [
-  'var(--accent-primary)', 'var(--accent-success)', 'var(--accent-warning)',
-  'var(--accent-error)', 'var(--accent-purple)', 'var(--accent-cyan)', 'var(--accent-orange)',
+  'var(--cyan)', 'var(--green)', 'var(--amber)',
+  'var(--red)', 'var(--violet)', 'var(--cyan)', 'var(--orange)',
+];
+
+const AGENT_GLOW_CLASSES = [
+  'card-glow-cyan', 'card-glow-green', '', '', 'card-glow-violet', 'card-glow-cyan', '',
 ];
 
 const AGENT_ICONS = ['🏗️', '⚡', '🔍', '🐛', '🧪', '🎨', '📝', '🔧'];
 
 function ViewToggle({ mode, onChange }: { mode: ViewMode; onChange: (m: ViewMode) => void }) {
   return (
-    <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="flex overflow-hidden" style={{ borderRadius: 'var(--r-md)', border: '1px solid var(--border-1)' }}>
       <button
         onClick={() => onChange('grid')}
         className="flex items-center gap-1.5 px-3 py-1.5 text-small font-medium transition-colors"
         style={{
-          background: mode === 'grid' ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+          background: mode === 'grid' ? 'var(--cyan-glow)' : 'transparent',
           color: mode === 'grid' ? 'var(--cyan)' : 'var(--text-3)',
-          borderRight: '1px solid rgba(255,255,255,0.07)',
+          borderRight: '1px solid var(--border-1)',
         }}
       >
         <LayoutGrid size={13} />
@@ -43,7 +47,7 @@ function ViewToggle({ mode, onChange }: { mode: ViewMode; onChange: (m: ViewMode
         onClick={() => onChange('world')}
         className="flex items-center gap-1.5 px-3 py-1.5 text-small font-medium transition-colors"
         style={{
-          background: mode === 'world' ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+          background: mode === 'world' ? 'var(--cyan-glow)' : 'transparent',
           color: mode === 'world' ? 'var(--cyan)' : 'var(--text-3)',
         }}
       >
@@ -88,16 +92,16 @@ export function AgentsPage() {
     <div className={viewMode === 'world' ? 'flex flex-col h-full' : 'space-y-8 max-w-6xl'}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-h1" style={{ color: 'var(--text-primary)' }}>Agents</h1>
-          <p className="text-body mt-1" style={{ color: 'var(--text-secondary)' }}>
+          <h1 className="text-h1" style={{ color: 'var(--text-0)' }}>Agents</h1>
+          <p className="text-body mt-1" style={{ color: 'var(--text-2)' }}>
             Profils de configuration réutilisables pour Claude Code
           </p>
         </div>
         <div className="flex items-center gap-3">
           <ViewToggle mode={viewMode} onChange={setViewMode} />
           <button onClick={handleNew}
-            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
-            style={{ background: 'var(--accent-primary)', color: 'white' }}>
+            className="btn-primary flex items-center gap-2 px-4 py-2 text-sm"
+            style={{ borderRadius: 'var(--r-md)' }}>
             <Plus size={16} /> Nouvel agent
           </button>
         </div>
@@ -109,37 +113,37 @@ export function AgentsPage() {
             <motion.div key={agent.id} custom={i} variants={cardVariants}
               initial="initial" animate="animate"
               onClick={() => handleEdit(agent)}
-              className="rounded-xl border p-5 cursor-pointer transition-all duration-200 group"
-              style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+              className={`card ${AGENT_GLOW_CLASSES[i % AGENT_GLOW_CLASSES.length]} noise p-5 cursor-pointer group`}>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center text-lg"
+                <div className="w-11 h-11 flex items-center justify-center text-lg"
                   style={{
+                    borderRadius: 'var(--r-md)',
                     background: `${AGENT_COLORS[i % AGENT_COLORS.length]}15`,
                     color: AGENT_COLORS[i % AGENT_COLORS.length],
                   }}>
                   {AGENT_ICONS[i % AGENT_ICONS.length]}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                  <div className="text-sm font-semibold truncate" style={{ color: 'var(--text-0)' }}>
                     {agent.name}
                   </div>
-                  <div className="text-small mono" style={{ color: 'var(--text-ghost)' }}>
+                  <div className="text-small mono" style={{ color: 'var(--text-4)' }}>
                     {agent.model.replace('claude-', '')}
                   </div>
                 </div>
                 <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg"
-                  style={{ color: 'var(--text-tertiary)' }} onClick={(e) => { e.stopPropagation(); handleEdit(agent); }}>
+                  style={{ color: 'var(--text-3)' }} onClick={(e) => { e.stopPropagation(); handleEdit(agent); }}>
                   <Edit2 size={14} />
                 </button>
               </div>
 
               {agent.description && (
-                <p className="text-small line-clamp-2 mb-3" style={{ color: 'var(--text-secondary)' }}>
+                <p className="text-small line-clamp-2 mb-3" style={{ color: 'var(--text-2)' }}>
                   {agent.description}
                 </p>
               )}
 
-              <div className="flex gap-3 text-small" style={{ color: 'var(--text-ghost)' }}>
+              <div className="flex gap-3 text-small" style={{ color: 'var(--text-4)' }}>
                 <span>Tokens: <span className="mono">{agent.maxTokens.toLocaleString()}</span></span>
                 <span>Temp: <span className="mono">{agent.temperature.toFixed(1)}</span></span>
               </div>
