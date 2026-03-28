@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useSessionStore } from '@/stores/sessionStore';
+import { useChatStore } from '@/stores/chatStore';
 import type { Session } from '@/types/session';
 
 interface SessionOutput {
@@ -90,6 +91,10 @@ export function useSession() {
       content: message,
       timestamp: new Date().toISOString(),
     });
+
+    // Flush any pending assistant content before the user message
+    const chatStore = useChatStore.getState();
+    chatStore.flushAssistant(sessionId);
   }, [appendLog]);
 
   return { createSession, stopSession, sendToSession };

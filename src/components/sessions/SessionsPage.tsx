@@ -5,7 +5,7 @@ import { useSessionStore } from '@/stores/sessionStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSession } from '@/hooks/useSession';
 import { SessionCard } from './SessionCard';
-import { SessionTerminal } from './SessionTerminal';
+import { SessionView } from './SessionView';
 import { NewSessionModal } from './NewSessionModal';
 
 const fadeUp = {
@@ -195,7 +195,7 @@ export function SessionsPage() {
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] as const }}
             >
-              <SessionTerminal
+              <SessionView
                 session={terminalSession}
                 onClose={() => setTerminalSessionId(null)}
               />
