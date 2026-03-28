@@ -3,7 +3,7 @@ use tauri::Emitter;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use portable_pty::{CommandBuilder, PtySize, native_pty_system, PtySystem, MasterPty};
+use portable_pty::{CommandBuilder, PtySize, native_pty_system, PtySystem};
 use std::io::{Read, Write};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -57,15 +57,28 @@ pub async fn spawn_process(
         })
         .map_err(|e| format!("Failed to open PTY: {}", e))?;
 
-    let mut cmd = CommandBuilder::new("claude");
+    // Build the claude command string
+    let mut claude_cmd = String::from("claude");
     if let Some(ref m) = model {
-        cmd.arg("--model");
-        cmd.arg(m);
+        claude_cmd.push_str(&format!(" --model {}", m));
     }
     for arg in &extra_args {
-        cmd.arg(arg);
+        claude_cmd.push_str(&format!(" {}", arg));
     }
+
+    // Launch cmd.exe which will run claude — this ensures PATH resolution works
+    let mut cmd = CommandBuilder::new("cmd.exe");
+    cmd.arg("/C");
+    cmd.arg(&claude_cmd);
     cmd.cwd(&project_path);
+
+    // Inherit the current process environment so PATH is available
+    for (key, value) in std::env::vars() {
+        cmd.env(key, value);
+    }
+    // Force color support
+    cmd.env("FORCE_COLOR", "1");
+    cmd.env("TERM", "xterm-256color");
 
     let _child = pair
         .slave
@@ -95,14 +108,14 @@ pub async fn spawn_process(
         handles.insert(sid.clone(), PtyHandle { writer, alive: alive.clone() });
     }
 
-    // Spawn reader thread (PTY reader is blocking, must use std thread)
+    // Spawn reader thread (PTY reader is blocking, must use std thread not tokio)
     let app_clone = app.clone();
     let sid_reader = session_id.clone();
     std::thread::spawn(move || {
-        let mut buf = [0u8; 4096];
+        let mut buf = [0u8; 8192];
         loop {
             match reader.read(&mut buf) {
-                Ok(0) => break, // EOF
+                Ok(0) => break,
                 Ok(n) => {
                     let content = String::from_utf8_lossy(&buf[..n]).to_string();
                     let payload = SessionOutput {
@@ -119,7 +132,7 @@ pub async fn spawn_process(
     });
 
     Ok(ProcessInfo {
-        pid: 0, // PTY doesn't expose child PID directly
+        pid: 0,
         session_id,
         alive: true,
     })
@@ -133,7 +146,6 @@ pub async fn kill_process(
     let mut handles = state.handles.lock().await;
     if let Some(handle) = handles.remove(&session_id) {
         handle.alive.store(false, std::sync::atomic::Ordering::Relaxed);
-        // Dropping the writer will close the PTY, which kills the child
         drop(handle);
         Ok(())
     } else {
