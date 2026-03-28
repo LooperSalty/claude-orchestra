@@ -13,38 +13,37 @@ interface TerminalProps {
 export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const termRef = useRef<XTerm | null>(null);
-  const fitAddonRef = useRef<FitAddon | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const term = new XTerm({
-      fontFamily: "'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace",
+      fontFamily: "'JetBrains Mono', 'Cascadia Code', monospace",
       fontSize: 13,
-      lineHeight: 1.4,
+      lineHeight: 1.5,
       cursorBlink: true,
       cursorStyle: 'bar',
       theme: {
-        background: '#0a0a12',
-        foreground: '#e8e9f0',
-        cursor: '#4f7df9',
-        selectionBackground: 'rgba(79, 125, 249, 0.3)',
-        black: '#06060a',
-        red: '#ff4d6a',
-        green: '#00e5a0',
-        yellow: '#ffb224',
-        blue: '#4f7df9',
-        magenta: '#a78bfa',
-        cyan: '#22d3ee',
-        white: '#e8e9f0',
-        brightBlack: '#555873',
-        brightRed: '#ff6b84',
-        brightGreen: '#33edb6',
-        brightYellow: '#ffc24d',
-        brightBlue: '#6b93ff',
-        brightMagenta: '#bfa4fb',
-        brightCyan: '#4de0f0',
-        brightWhite: '#ffffff',
+        background: '#0a0a0b',
+        foreground: '#d4d4d4',
+        cursor: '#00d4ff',
+        selectionBackground: 'rgba(0, 212, 255, 0.2)',
+        black: '#050506',
+        red: '#ff3366',
+        green: '#00ff88',
+        yellow: '#ffb800',
+        blue: '#00d4ff',
+        magenta: '#8b5cf6',
+        cyan: '#00d4ff',
+        white: '#d4d4d4',
+        brightBlack: '#3f3f46',
+        brightRed: '#ff5580',
+        brightGreen: '#33ffa0',
+        brightYellow: '#ffc933',
+        brightBlue: '#33dfff',
+        brightMagenta: '#a78bfa',
+        brightCyan: '#33dfff',
+        brightWhite: '#fafaf9',
       },
       allowProposedApi: true,
     });
@@ -53,25 +52,24 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
     const webLinksAddon = new WebLinksAddon();
     term.loadAddon(fitAddon);
     term.loadAddon(webLinksAddon);
-
     term.open(containerRef.current);
-    fitAddon.fit();
 
-    // Welcome message
-    term.writeln('\x1b[1;34m╔══════════════════════════════════════╗\x1b[0m');
-    term.writeln('\x1b[1;34m║\x1b[0m  \x1b[1;37mClaude Orchestra\x1b[0m — Session Terminal  \x1b[1;34m║\x1b[0m');
-    term.writeln('\x1b[1;34m╚══════════════════════════════════════╝\x1b[0m');
+    // Delay fit to ensure container is sized
+    requestAnimationFrame(() => fitAddon.fit());
+
+    // Welcome
+    term.writeln('');
+    term.writeln('  \x1b[1;36m⬢\x1b[0m \x1b[1mClaude Orchestra\x1b[0m \x1b[90m— Terminal\x1b[0m');
+    term.writeln('  \x1b[90m─────────────────────────────\x1b[0m');
     term.writeln('');
 
-    // Handle user input
     if (onData) {
       term.onData(onData);
     }
 
     termRef.current = term;
-    fitAddonRef.current = fitAddon;
 
-    // Listen for Tauri events for this session
+    // Listen Tauri events
     let unlisten: (() => void) | undefined;
     (async () => {
       try {
@@ -88,18 +86,32 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
           }
         );
       } catch {
-        // Browser mode — no Tauri events
+        // Browser fallback — listen to window CustomEvents
       }
     })();
 
-    // Resize observer
+    // Browser fallback: listen to CustomEvent
+    function handleBrowserEvent(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.content) {
+        if (detail.log_type === 'stderr') {
+          term.write(`\x1b[31m${detail.content}\x1b[0m`);
+        } else {
+          term.write(detail.content);
+        }
+      }
+    }
+    window.addEventListener(`session-output-${sessionId}`, handleBrowserEvent);
+
+    // Resize
     const observer = new ResizeObserver(() => {
-      fitAddon.fit();
+      requestAnimationFrame(() => fitAddon.fit());
     });
     observer.observe(containerRef.current);
 
     return () => {
       observer.disconnect();
+      window.removeEventListener(`session-output-${sessionId}`, handleBrowserEvent);
       unlisten?.();
       term.dispose();
     };
@@ -108,13 +120,8 @@ export function Terminal({ sessionId, onData, className = '' }: TerminalProps) {
   return (
     <div
       ref={containerRef}
-      className={`w-full h-full min-h-[200px] rounded-lg overflow-hidden ${className}`}
-      style={{ background: '#0a0a12' }}
+      className={`w-full h-full min-h-[200px] rounded-xl overflow-hidden ${className}`}
+      style={{ background: '#0a0a0b' }}
     />
   );
-}
-
-// Helper to write to a terminal from outside
-export function writeToTerminal(term: XTerm | null, data: string) {
-  term?.write(data);
 }

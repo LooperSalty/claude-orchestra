@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, FolderOpen, Play, ChevronDown } from 'lucide-react';
-import { useSessionStore } from '@/stores/sessionStore';
 import { useAgentStore } from '@/stores/agentStore';
+import { useSession } from '@/hooks/useSession';
 import type { ClaudeModel } from '@/types/agent';
 
 interface NewSessionModalProps {
@@ -24,7 +24,7 @@ export function NewSessionModal({ open, onClose }: NewSessionModalProps) {
   const [isLaunching, setIsLaunching] = useState(false);
 
   const agents = useAgentStore((s) => s.agents);
-  const addSession = useSessionStore((s) => s.addSession);
+  const { createSession } = useSession();
 
   async function handleSelectFolder() {
     try {
@@ -49,25 +49,7 @@ export function NewSessionModal({ open, onClose }: NewSessionModalProps) {
     setIsLaunching(true);
 
     try {
-      const { invoke } = await import('@tauri-apps/api/core');
-      const session = await invoke('create_session', {
-        config: {
-          project_path: projectPath,
-          model,
-          agent_id: agentId || null,
-          extra_args: extraArgs ? extraArgs.split(' ') : [],
-        },
-      });
-      addSession(session as Parameters<typeof addSession>[0]);
-
-      // Spawn the actual process
-      await invoke('spawn_process', {
-        sessionId: (session as { id: string }).id,
-        projectPath,
-        model,
-        extraArgs: extraArgs ? extraArgs.split(' ') : [],
-      });
-
+      await createSession(projectPath, model, extraArgs ? extraArgs.split(' ') : []);
       onClose();
       resetForm();
     } catch (err) {

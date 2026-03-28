@@ -62,20 +62,20 @@ export function DashboardPage() {
       variants={stagger}
       initial="initial"
       animate="animate"
-      className="space-y-8 max-w-[1100px]"
+      className="space-y-10 max-w-[1100px]"
     >
       {/* ── Header ── */}
       <motion.div variants={fadeUp}>
         <h1 className="font-display text-3xl font-bold tracking-tight" style={{ color: 'var(--text-0)' }}>
           Dashboard
         </h1>
-        <p className="text-[13px] mt-1" style={{ color: 'var(--text-3)' }}>
+        <p className="text-[13px] mt-2" style={{ color: 'var(--text-3)' }}>
           Claude Orchestra — control center
         </p>
       </motion.div>
 
       {/* ── KPI Grid ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <Stat
           icon={Terminal}
           label="Active sessions"
@@ -115,7 +115,7 @@ export function DashboardPage() {
         >
           {/* Gradient mesh background */}
           <div
-            className="relative px-12 py-20"
+            className="relative px-12 py-24"
             style={{
               background: `
                 radial-gradient(ellipse at 20% 50%, rgba(0, 212, 255, 0.06) 0%, transparent 60%),
