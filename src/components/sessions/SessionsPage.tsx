@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Terminal, LayoutGrid, Rows3, Columns3, Grid2x2, Square } from 'lucide-react';
 import { useSessionStore } from '@/stores/sessionStore';
@@ -21,6 +21,18 @@ export function SessionsPage() {
   const { stopSession } = useSession();
   const [showNewModal, setShowNewModal] = useState(false);
   const [terminalSessionId, setTerminalSessionId] = useState<string | null>(null);
+  const prevSessionCount = useRef(sessions.length);
+
+  // Auto-open terminal when a new session is created
+  useEffect(() => {
+    if (sessions.length > prevSessionCount.current) {
+      const newest = sessions[sessions.length - 1];
+      if (newest && newest.status === 'running') {
+        setTerminalSessionId(newest.id);
+      }
+    }
+    prevSessionCount.current = sessions.length;
+  }, [sessions]);
 
   const terminalSession = sessions.find((s) => s.id === terminalSessionId);
   const runningSessions = sessions.filter((s) => s.status === 'running');

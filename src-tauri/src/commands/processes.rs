@@ -47,7 +47,7 @@ pub async fn spawn_process(
     extra_args: Vec<String>,
 ) -> Result<ProcessInfo, String> {
     // Build CLI arguments
-    let mut args = vec!["--print-output".to_string()];
+    let mut args: Vec<String> = Vec::new();
     if let Some(ref m) = model {
         args.push("--model".to_string());
         args.push(m.clone());
