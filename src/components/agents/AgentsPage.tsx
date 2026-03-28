@@ -1,6 +1,10 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Bot } from 'lucide-react';
+import { Plus, Edit2 } from 'lucide-react';
 import { useAgentStore } from '@/stores/agentStore';
+import { AgentEditor } from './AgentEditor';
+import { DEFAULT_AGENTS } from '@/types/agent';
+import type { AgentConfig } from '@/types/agent';
 
 const cardVariants = {
   initial: { opacity: 0, scale: 0.95, y: 15 },
@@ -11,101 +15,101 @@ const cardVariants = {
 };
 
 const AGENT_COLORS = [
-  'var(--accent-primary)',
-  'var(--accent-success)',
-  'var(--accent-warning)',
-  'var(--accent-error)',
-  'var(--accent-purple)',
-  'var(--accent-cyan)',
-  'var(--accent-orange)',
+  'var(--accent-primary)', 'var(--accent-success)', 'var(--accent-warning)',
+  'var(--accent-error)', 'var(--accent-purple)', 'var(--accent-cyan)', 'var(--accent-orange)',
 ];
 
+const AGENT_ICONS = ['🏗️', '⚡', '🔍', '🐛', '🧪', '🎨', '📝', '🔧'];
+
 export function AgentsPage() {
-  const agents = useAgentStore((s) => s.agents);
+  const { agents, setAgents } = useAgentStore();
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<AgentConfig | undefined>();
+
+  // Load default agents on first visit
+  useEffect(() => {
+    if (agents.length === 0) {
+      const now = new Date().toISOString();
+      const defaults = DEFAULT_AGENTS.map((a) => ({
+        ...a,
+        id: crypto.randomUUID(),
+        createdAt: now,
+        updatedAt: now,
+      }));
+      setAgents(defaults);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleEdit(agent: AgentConfig) {
+    setEditingAgent(agent);
+    setEditorOpen(true);
+  }
+
+  function handleNew() {
+    setEditingAgent(undefined);
+    setEditorOpen(true);
+  }
 
   return (
     <div className="space-y-6 max-w-6xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-h1" style={{ color: 'var(--text-primary)' }}>
-            Agents
-          </h1>
+          <h1 className="text-h1" style={{ color: 'var(--text-primary)' }}>Agents</h1>
           <p className="text-body mt-1" style={{ color: 'var(--text-secondary)' }}>
             Profils de configuration réutilisables pour Claude Code
           </p>
         </div>
-        <button
+        <button onClick={handleNew}
           className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
-          style={{ background: 'var(--accent-primary)', color: 'white' }}
-        >
-          <Plus size={16} />
-          Nouvel agent
+          style={{ background: 'var(--accent-primary)', color: 'white' }}>
+          <Plus size={16} /> Nouvel agent
         </button>
       </div>
 
-      {agents.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border p-12 text-center"
-          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}
-        >
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: 'rgba(251, 146, 60, 0.15)', color: 'var(--accent-orange)' }}
-          >
-            <Bot size={28} />
-          </div>
-          <h3 className="text-h3 mb-2" style={{ color: 'var(--text-primary)' }}>
-            Aucun agent configuré
-          </h3>
-          <p className="text-body" style={{ color: 'var(--text-secondary)' }}>
-            Créez des profils d'agents avec des configurations prédéfinies.
-          </p>
-        </motion.div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {agents.map((agent, i) => (
-            <motion.div
-              key={agent.id}
-              custom={i}
-              variants={cardVariants}
-              initial="initial"
-              animate="animate"
-              className="rounded-xl border p-4 cursor-pointer transition-colors hover:border-opacity-60"
-              style={{
-                background: 'var(--bg-surface)',
-                borderColor: 'var(--border-subtle)',
-              }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{
-                    background: `${AGENT_COLORS[i % AGENT_COLORS.length]}20`,
-                    color: AGENT_COLORS[i % AGENT_COLORS.length],
-                  }}
-                >
-                  <Bot size={20} />
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {agents.map((agent, i) => (
+          <motion.div key={agent.id} custom={i} variants={cardVariants}
+            initial="initial" animate="animate"
+            onClick={() => handleEdit(agent)}
+            className="rounded-xl border p-4 cursor-pointer transition-all duration-200 group"
+            style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-lg"
+                style={{
+                  background: `${AGENT_COLORS[i % AGENT_COLORS.length]}15`,
+                  color: AGENT_COLORS[i % AGENT_COLORS.length],
+                }}>
+                {AGENT_ICONS[i % AGENT_ICONS.length]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                  {agent.name}
                 </div>
-                <div>
-                  <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                    {agent.name}
-                  </div>
-                  <div className="text-small" style={{ color: 'var(--text-tertiary)' }}>
-                    {agent.model}
-                  </div>
+                <div className="text-small mono" style={{ color: 'var(--text-ghost)' }}>
+                  {agent.model.replace('claude-', '')}
                 </div>
               </div>
-              {agent.description && (
-                <p className="text-small line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
-                  {agent.description}
-                </p>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      )}
+              <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg"
+                style={{ color: 'var(--text-tertiary)' }} onClick={(e) => { e.stopPropagation(); handleEdit(agent); }}>
+                <Edit2 size={14} />
+              </button>
+            </div>
+
+            {agent.description && (
+              <p className="text-small line-clamp-2 mb-3" style={{ color: 'var(--text-secondary)' }}>
+                {agent.description}
+              </p>
+            )}
+
+            <div className="flex gap-3 text-small" style={{ color: 'var(--text-ghost)' }}>
+              <span>Tokens: <span className="mono">{agent.maxTokens.toLocaleString()}</span></span>
+              <span>Temp: <span className="mono">{agent.temperature.toFixed(1)}</span></span>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <AgentEditor agent={editingAgent} open={editorOpen} onClose={() => setEditorOpen(false)} />
     </div>
   );
 }
