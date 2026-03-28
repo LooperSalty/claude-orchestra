@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { Session, Project } from '@/types/session';
 import type { Skill } from '@/types/skill';
+import type { ApiKeyInfo, AccountInfo } from '@/types/auth';
 
 // Sessions
 export async function listSessions(): Promise<Session[]> {
@@ -79,4 +80,72 @@ export async function getConfig(): Promise<{
 
 export async function detectClaudeCode(): Promise<boolean> {
   return invoke('detect_claude_code');
+}
+
+// Auth
+export async function validateApiKey(key: string): Promise<ApiKeyInfo> {
+  if (!isTauri()) {
+    return mockValidateApiKey(key);
+  }
+  return invoke('validate_api_key', { key });
+}
+
+export async function saveApiKey(key: string): Promise<void> {
+  if (!isTauri()) {
+    localStorage.setItem('claude-orchestra-api-key', key);
+    return;
+  }
+  return invoke('save_api_key', { key });
+}
+
+export async function getApiKey(): Promise<string | null> {
+  if (!isTauri()) {
+    return localStorage.getItem('claude-orchestra-api-key');
+  }
+  return invoke('get_api_key');
+}
+
+export async function deleteApiKey(): Promise<void> {
+  if (!isTauri()) {
+    localStorage.removeItem('claude-orchestra-api-key');
+    return;
+  }
+  return invoke('delete_api_key');
+}
+
+export async function getAccountInfo(key: string): Promise<AccountInfo> {
+  if (!isTauri()) {
+    return mockGetAccountInfo();
+  }
+  return invoke('get_account_info', { key });
+}
+
+// Helpers
+
+function isTauri(): boolean {
+  return '__TAURI_INTERNALS__' in window;
+}
+
+function mockValidateApiKey(key: string): Promise<ApiKeyInfo> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const valid = key.startsWith('sk-ant-');
+      resolve({
+        valid,
+        models: valid
+          ? ['claude-sonnet-4-20250514', 'claude-haiku-4-5-20251001', 'claude-opus-4-20250514']
+          : [],
+      });
+    }, 1200);
+  });
+}
+
+function mockGetAccountInfo(): Promise<AccountInfo> {
+  return Promise.resolve({
+    models: [
+      { id: 'claude-sonnet-4-20250514', displayName: 'Claude Sonnet 4' },
+      { id: 'claude-haiku-4-5-20251001', displayName: 'Claude Haiku 4.5' },
+      { id: 'claude-opus-4-20250514', displayName: 'Claude Opus 4' },
+    ],
+  });
 }
